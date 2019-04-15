@@ -8,8 +8,9 @@ The DSGE model is built using dynare and tested using Octave, an open source sof
 
 The model is documented according to a research paper (to be updated later)
 
-⋅⋅⋅Dynare version 4.5.7 (https://www.dynare.org/download/)
-⋅⋅⋅Octave version 4.4.1 (https://www.gnu.org/software/octave/)
+Dynare version 4.5.7 (https://www.dynare.org/download/)
+
+Octave version 4.4.1 (https://www.gnu.org/software/octave/)
 
 Data: us_data.m
 
