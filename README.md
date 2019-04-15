@@ -17,8 +17,11 @@ Data: us_data.m
 Model: usb.mod
 
 To run the model:
+
 addpath c:\dynare\4.5.7\matlab
+
 cd C:\dynare\us
+
 dynare us
 
 Folder "us" needs to include data file and model file
