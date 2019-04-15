@@ -95,8 +95,7 @@ data = [
 
 R_		= data(:,1);
 pi_c_		= data(:,2);
-pi_cbar_	= data(:,3);	
-% trend_	= data(:,3);	
+pi_cbar_	= data(:,3);
 pi_i_		= data(:,4);
 pi_d_		= data(:,5);
 dy_		= data(:,6);
@@ -110,5 +109,3 @@ dw_		= data(:,13);
 dy_star_	= data(:,14);
 pi_star_	= data(:,15);
 R_star_	= data(:,16);
-%R_l_		= data(:,17);
-%dm_		= data(:,18);
