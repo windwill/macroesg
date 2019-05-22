@@ -3,7 +3,8 @@ library(rpart.plot)
 library(FNN)
 library(neuralnet)
 
-rawdata <- read.csv("C:/dsge/r/inputmap.csv", header=TRUE, sep=",", dec=".")
+setwd("C:/dsge/r")
+rawdata <- read.csv("inputmap.csv", header=TRUE, sep=",", dec=".")
 Xnames <- c("R_","pi_c_","pi_i_","pi_d_","dy_","dc_","di_","dimp_","dex_","dE_")
 Ynames <- names(rawdata)[!names(rawdata) %in% c(Xnames,"Year","Quarter","Recession")]
 
@@ -64,7 +65,7 @@ for (y in Ynames) {
 	corr<-cor(lr$residuals,lr$fitted.values)
 	rescorr<-cor(lr$residuals[Traindata$Recession==1],lr$fitted.values[Traindata$Recession==1])
 	modeloutput[nrow(modeloutput)+1,] <- c(y, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr, "LM")
-	write.csv(summary(lr)$coefficients,paste0("C:/dsge/fm/lr_",y,".csv"))
+	write.csv(summary(lr)$coefficients,paste0("lr_",y,".csv"))
 	residuals[,y]<-c(rep(NA,nrow(residuals)-length(lr$residuals)),lr$residuals)
 	
 	#cart
@@ -138,8 +139,8 @@ for (y in Ynames) {
 	write.csv(residuals,paste0("residuals1.csv"))
 
 # predict recession
-rawdata <- read.csv("C:/2015 Research/Pension Scenarios/inputmap.csv", header=TRUE, sep=",", dec=".")
-Xnames <- c("Unemploy","gpdinv","pconsump","gdpgr")
+rawdata <- read.csv("inputmap.csv", header=TRUE, sep=",", dec=".")
+Xnames <- c("pi_c_","dy_","dc_","di_","dE_")
 Ynames <- "Recession"
 
 modeloutput <- data.frame(y=character(),
@@ -193,7 +194,7 @@ lag <-2
 	paste("The F is",F)
 
 	modeloutput[1,] <- c(Ynames,precision, recall, F, "linear")
-	write.csv(summary(lr)$coefficients,paste0("C:/Data/data/lr_",Ynames,".csv"))
+	write.csv(summary(lr)$coefficients,paste0("lr_",Ynames,".csv"))
 
 	# Generalized Linear Model
 	glmr <- glm(f, data=Traindata, family=binomial)
@@ -217,7 +218,7 @@ lag <-2
 	paste("The F is",F)
 
 	modeloutput[2,] <- c(Ynames, precision, recall, F, "glm")
-	write.csv(glmr$coefficients,paste0("C:/Data/data/glmr_",Ynames,".csv"))
+	write.csv(glmr$coefficients,paste0("glmr_",Ynames,".csv"))
 
 	#cart
 	cart = rpart(f, data = Traindata, cp = 10^(-3),minsplit = 10,, method = "class")
@@ -290,14 +291,13 @@ lag <-2
 
 	modeloutput[5,] <- c(Ynames, precision, recall, F, "ANN")
 
-}
 
-	write.csv(modeloutput,paste0("C:/Data/data/modeloutput1.csv"))
+	write.csv(modeloutput,paste0("modeloutput2.csv"))
 
 
 #Let's try variable selection	
-rawdata <- read.csv("C:/2015 Research/Pension Scenarios/inputmap.csv", header=TRUE, sep=",", dec=".")
-Xnames <- c("Unemploy","gpdinv","pconsump","gdpgr","m3tb","aa10y","tb10y","cpi")#,"export","import","niinv"
+rawdata <- read.csv("inputmap.csv", header=TRUE, sep=",", dec=".")
+Xnames <- c("R_","pi_c_","pi_i_","pi_d_","dy_","dc_","di_","dimp_","dex_","dE_")
 Ynames <- names(rawdata)[!names(rawdata) %in% c(Xnames,"Year","Quarter","Recession")]
 
 modeloutput <- data.frame(y=character(),
@@ -374,7 +374,7 @@ for (y in Ynames) {
 		corr<-cor(lr$residuals,lr$fitted.values)
 		rescorr<-cor(lr$residuals[Traindata$Recession==1],lr$fitted.values[Traindata$Recession==1])
 		modeloutput[nrow(modeloutput)+1,] <- c(y, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr, "LM")
-		write.csv(summary(lr)$coefficients,paste0("C:/Data/data/vs/lr_",y,".csv"))
+		write.csv(summary(lr)$coefficients,paste0("lr_",y,".csv"))
 		residuals[,y]<-c(rep(NA,nrow(residuals)-length(lr$residuals)),lr$residuals)
 	},
 		error = function(ex) {
@@ -390,8 +390,8 @@ for (y in Ynames) {
 
 }
 
-	write.csv(modeloutput,paste0("C:/Data/data/vs/modeloutput2.csv"))
-	write.csv(residuals,paste0("C:/Data/data/vs/residuals2.csv"))
+	write.csv(modeloutput,paste0("modeloutput3.csv"))
+	write.csv(residuals,paste0("residuals3.csv"))
 
 #correlation matrix
 repairall <- function(C){
@@ -428,120 +428,3 @@ repaircorr<-function(C){
 	C   <- BB * TT
 	return (C)
 }
-
-#removes <- c("aaaboa","aaboa","aboa","bbbboa","aaadefault","spmidd","spmid","spsmalld","spsmall","spdivd","spdiv","spginfrad","spginfra","psped","pspe")
-keeps <- c("sp500","spmid","spsmall","spdiv","ge","spginfra","pspe","commod","oil","gold","recession") #
-#removes <- c("aaadefault","spmidd","spmid","spsmalld","spsmall","spdivd","spdiv","spginfrad","spginfra","psped","pspe")
-#removes <- c("spginfrad","spginfra","psped","pspe")
-um<-"pairwise.complete.obs" #"pairwise.complete.obs" "complete.obs" "all.obs" "na.or.complete"
-alldata <- read.csv("C:/Data/data/residuals.csv", header=TRUE, sep=",", dec=".")
-#alldata <- alldata[,!names(alldata) %in% removes]
-alldata <- alldata[,names(alldata) %in% keeps]
-cordata <- alldata[,!names(alldata) %in% c("recession")]
-normalcorr <- cor(cordata, use = um, method = "pearson")
-icount <-0
-while (repairall(normalcorr)==0) {
-	normalcorr <- repaircorr(normalcorr)
-	icount <- icount+1
-	print(icount)
-}
-normalchol <- chol(normalcorr)
-#normalcorr[is.na(normalcorr)]<-0
-#normalcorr["aaadefault","aaadefault"]<-1
-
-cordata <- alldata[alldata$recession == 1,]
-cordata <- cordata[,!names(cordata) %in% c("recession")]
-recessioncorr <- cor(cordata, use = um, method = "pearson")
-icount <-0
-while (repairall(recessioncorr)==0) {
-	recessioncorr <- repaircorr(recessioncorr)
-	icount <- icount+1
-	print(icount)
-}
-recessionchol <- chol(recessioncorr)
-#recessioncorr[is.na(recessioncorr)]<-0
-#recessioncorr["aaadefault","aaadefault"]<-1
-
-
-#normalcorr<-repaircorr(normalcorr)
-#recessioncorr<-repaircorr(recessioncorr)
-write.csv(normalcorr,paste0("C:/Data/data/normalcorr.csv"))
-write.csv(normalchol,paste0("C:/Data/data/normalchol.csv"))
-write.csv(recessioncorr,paste0("C:/Data/data/recessioncorr.csv"))
-write.csv(recessionchol,paste0("C:/Data/data/recessionchol.csv"))
-
-#check normality of residuals
-ksoutput <- data.frame(y=character(),
-				 ksstat=double(),
-                 ksp=double(),
-                 stringsAsFactors=FALSE)
-checkdata <- read.csv("C:/Data/data/residuals.csv", header=TRUE, sep=",", dec=".")
-checkdata <- checkdata[,!names(checkdata) %in% c("recession","aaadefault")]
-for (i in names(checkdata)){
-	x <- checkdata[,i]
-	x <- x[!is.na(x)]
-	mu <- mean(checkdata[,i],na.rm=TRUE)
-	std <- sd(checkdata[,i],na.rm=TRUE)
-	y<-rnorm(500,mu,std)
-	s <- ks.test(x,y)
-	ksoutput[nrow(ksoutput)+1,] <- c(i, s$statistic, s$p.value)
-}
-write.csv(ksoutput,paste0("C:/Data/data/ksoutput.csv"))
-
-#generate correlated random variable
-gencrv <- function(nchol,rchol,lrecession,varnames){
-	mreturn <- matrix(NA,nrow=nrow(lrecession),ncol=length(varnames))
-	colnames(mreturn) <- varnames
-	nv <- length(varnames)
-	cvarnames <- colnames(nchol)
-	nc <- length(cvarnames)
-	mreturn[,!colnames(mreturn) %in% cvarnames] <- rnorm((nv-nc)*nrow(lrecession))
-	mreturn <- cbind(mreturn,lrecession)
-	for (j in c(1:nrow(mreturn))){
-		if(mreturn[j,"Recession"] == 0) {
-			mreturn[j,colnames(mreturn) %in% cvarnames] <- (t(nchol) %*% rnorm(nc))
-		} else {
-			mreturn[j,colnames(mreturn) %in% cvarnames] <- (t(rchol) %*% rnorm(nc))
-		}
-	}
-	return (mreturn)
-}
-
-#Fundamental risk factor VAR
-library(vars)
-rawdata <- read.csv("inputmap.csv", header=TRUE, sep=",", dec=".")
-Xnames <- c("R_","pi_c_","pi_i_","pi_d_","dy_","dc_","di_","dimp_","dex_","dE_")
-
-Traindata <- rawdata[,names(rawdata) %in% c(Xnames)]
-	
-var1 <- VAR(Traindata, p = 1, type = "const") #both
-stab1 <- stability(var1, h = 0.15, dynamic = FALSE, rescale = TRUE) #type = c("OLS-CUSUM", "Rec-CUSUM", "Rec-MOSUM","OLS-MOSUM", "RE", "ME", "Score-CUSUM", "Score-MOSUM", "fluctuation"),
-plot(stab1)
-nr <- length(Xnames) + 1 #2
-varoutput <- matrix(NA,nrow=nr, ncol=length(Xnames))
-colnames(varoutput) <- Xnames
-for (i in c(Xnames)) {
-	varoutput[,i] <- var1$varresult[i][[1]]$coefficients
-}
-
-rownames(varoutput) <- names(var1$varresult[i][[1]]$coefficients)
-write.csv(t(varoutput),"varoutput.csv")
-write.csv(summary(var1)$corres,"var1corres.csv")
-
-nchol <- chol(summary(var1)$corres)
-mreturn <- matrix(NA,nrow=202*100,ncol=length(Xnames))
-for (j in c(1:nrow(mreturn))){
-	mreturn[j,] <- (t(nchol) %*% rnorm(length(Xnames)))
-}
-colnames(mreturn) <- Xnames
-write.csv(mreturn,paste0("cvar1output.csv"))
-
-#Solve stable means
-tvaroutput <- t(varoutput)
-A<-tvaroutput[,1:length(Xnames)]
-B<-tvaroutput[,length(Xnames)+1]
-A<- -A
-for (i in c(1:nrow(A))){
-	A[i,i] <- A[i,i]+1
-}
-stablemeans <- solve(A,B)
