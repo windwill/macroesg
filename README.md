@@ -10,7 +10,7 @@ The model is documented according to a research paper (to be updated later)
 
 Dynare version 4.5.7 (https://www.dynare.org/download/)
 
-Octave version 4.4.1 (https://www.gnu.org/software/octave/)
+Octave version 4.4.1 (https://ftp.gnu.org/gnu/octave/windows/octave-4.4.1-w64-installer.exe)
 
 Data: us_data.m
 
