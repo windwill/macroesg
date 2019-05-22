@@ -25,5 +25,12 @@ To run the model:
 Folder "us" needs to include data file and model file
 
 # Multifactor Regression
+Regression models are used to build the relationships between macroeconomic factors and asset returns. R programs are used to test five model types: linear regression, GLM, CART, KNN, ANN. It also includes prediction of economic recession and repair correlation matrix for non-positive definite ones.
+
+Data: inputmap.csv
+
+Program: fundmapping.R
+
+Check working directory in setwd("C:/dsge/r")
 
 # ESG
