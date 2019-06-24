@@ -3,8 +3,12 @@ library(rpart.plot)
 library(FNN)
 library(neuralnet)
 
-setwd("C:/dsge/r")
-rawdata <- read.csv("inputmap.csv", header=TRUE, sep=",", dec=".")
+#setwd("C:/dsge/r")
+setwd("C:/temp/2017/dsge/fm")
+################################################################
+# Multifactor regression #######################################
+################################################################
+rawdata <- read.csv("input/inputmap.csv", header=TRUE, sep=",", dec=".")
 Xnames <- c("R_","pi_c_","pi_i_","pi_d_","dy_","dc_","di_","dimp_","dex_","dE_")
 Ynames <- names(rawdata)[!names(rawdata) %in% c(Xnames,"Year","Quarter","Recession")]
 
@@ -23,16 +27,14 @@ modeloutput <- data.frame(y=character(),
                  stringsAsFactors=FALSE)
 
 
-lag <-1
+lag <-2
 residuals <- matrix(,nrow=nrow(rawdata)-lag,ncol=length(Ynames))
 colnames(residuals) <- Ynames
 for (y in Ynames) {
 	Traindata <- rawdata[,names(rawdata) %in% c(y,Xnames,"Recession")]
 	
-	Xnames1 <- names(Traindata)[!names(Traindata) %in% c("Recession",y)]
-	if ((y == "spginfrad") || (y == "psped")) {
-		Xnames1 <- Xnames1[!Xnames1 %in% c(y)]
-	}
+	Xnames1 <- names(Traindata)[!names(Traindata) %in% c("Recession")]
+
 	if (lag > 0) {
 		for (i in c(1:lag)){
 			for (varname in Xnames1){
@@ -138,7 +140,9 @@ for (y in Ynames) {
 	write.csv(modeloutput,paste0("modeloutput1.csv"))
 	write.csv(residuals,paste0("residuals1.csv"))
 
-# predict recession
+################################################################
+# predict recession ############################################
+################################################################
 rawdata <- read.csv("inputmap.csv", header=TRUE, sep=",", dec=".")
 Xnames <- c("pi_c_","dy_","dc_","di_","dE_")
 Ynames <- "Recession"
@@ -152,150 +156,152 @@ modeloutput <- data.frame(y=character(),
 
 lag <-2
 
-	Traindata <- rawdata[,names(rawdata) %in% c(Ynames,Xnames)]
-	
-	Xnames1 <- names(Traindata)[!names(Traindata) %in% c(Ynames)]
+Traindata <- rawdata[,names(rawdata) %in% c(Ynames,Xnames)]
 
-	if (lag > 0) {
-		for (i in c(1:lag)){
-			for (varname in Xnames1){
-				Traindata[(i+1):nrow(Traindata),paste0(varname,i)] <- Traindata[1:(nrow(Traindata)-i),varname]
-				Traindata[1:i,paste0(varname,i)] <- NA
-			}
+Xnames1 <- names(Traindata)[!names(Traindata) %in% c(Ynames)]
+
+if (lag > 0) {
+	for (i in c(1:lag)){
+		for (varname in Xnames1){
+			Traindata[(i+1):nrow(Traindata),paste0(varname,i)] <- Traindata[1:(nrow(Traindata)-i),varname]
+			Traindata[1:i,paste0(varname,i)] <- NA
 		}
 	}
-	
-	Traindata <- na.omit(Traindata[(lag+1):nrow(Traindata),])
-	
-	Xnames2 <- names(Traindata)[!names(Traindata) %in% c(Ynames)]
-	
-	f <-as.formula(paste(Ynames,"~",paste(Xnames2,collapse="+")))
-	
-	print(f)
+}
 
-	#linear regression
-	lr<-lm(f, data=Traindata)
+Traindata <- na.omit(Traindata[(lag+1):nrow(Traindata),])
 
-	predict <- ifelse(lr$fitted.values>0.5, 1, 0)
-	predictyes <- sum(predict==1)
-	predictno<-sum(predict==0)
-	actual <- Traindata[,Ynames]
-	actualwhenpredyes <- actual[predict==1]
-	actualwhenpredno <- actual[predict==0]
-	tp <- sum(actualwhenpredyes==1)
-	tn <- sum(actualwhenpredno==0)
-	fp <- length(actualwhenpredyes) - tp
-	fn <- length(actualwhenpredno) - tn
-	precision<-tp/predictyes
-	recall<-tp/(tp+fn)
-	F = 2*precision*recall/(precision+recall)
-	paste("The precision is",precision)
-	paste("The recall is",recall)
-	paste("The F is",F)
+Xnames2 <- names(Traindata)[!names(Traindata) %in% c(Ynames)]
 
-	modeloutput[1,] <- c(Ynames,precision, recall, F, "linear")
-	write.csv(summary(lr)$coefficients,paste0("lr_",Ynames,".csv"))
+f <-as.formula(paste(Ynames,"~",paste(Xnames2,collapse="+")))
 
-	# Generalized Linear Model
-	glmr <- glm(f, data=Traindata, family=binomial)
-	glmrpredict <- predict(glmr, Traindata)
+print(f)
 
-	predict <- ifelse(glmrpredict>0.5, 1, 0)
-	predictyes <- sum(predict==1)
-	predictno<-sum(predict==0)
-	actual <- Traindata[,Ynames]
-	actualwhenpredyes <- actual[predict==1]
-	actualwhenpredno <- actual[predict==0]
-	tp <- sum(actualwhenpredyes==1)
-	tn <- sum(actualwhenpredno==0)
-	fp <- length(actualwhenpredyes) - tp
-	fn <- length(actualwhenpredno) - tn
-	precision<-tp/predictyes
-	recall<-tp/(tp+fn)
-	F = 2*precision*recall/(precision+recall)
-	paste("The precision is",precision)
-	paste("The recall is",recall)
-	paste("The F is",F)
+#linear regression
+lr<-lm(f, data=Traindata)
 
-	modeloutput[2,] <- c(Ynames, precision, recall, F, "glm")
-	write.csv(glmr$coefficients,paste0("glmr_",Ynames,".csv"))
+predict <- ifelse(lr$fitted.values>0.5, 1, 0)
+predictyes <- sum(predict==1)
+predictno<-sum(predict==0)
+actual <- Traindata[,Ynames]
+actualwhenpredyes <- actual[predict==1]
+actualwhenpredno <- actual[predict==0]
+tp <- sum(actualwhenpredyes==1)
+tn <- sum(actualwhenpredno==0)
+fp <- length(actualwhenpredyes) - tp
+fn <- length(actualwhenpredno) - tn
+precision<-tp/predictyes
+recall<-tp/(tp+fn)
+F = 2*precision*recall/(precision+recall)
+paste("The precision is",precision)
+paste("The recall is",recall)
+paste("The F is",F)
 
-	#cart
-	cart = rpart(f, data = Traindata, cp = 10^(-3),minsplit = 10,, method = "class")
-	cartpredict <- predict(cart, Traindata)
-	predict <- ifelse(cartpredict[,2]>0.5, 1, 0)
+modeloutput[1,] <- c(Ynames,precision, recall, F, "linear")
+write.csv(summary(lr)$coefficients,paste0("lr_",Ynames,".csv"))
 
-	predictyes <- sum(predict==1)
-	predictno<-sum(predict==0)
-	actual <- Traindata[,Ynames]
-	actualwhenpredyes <- actual[predict==1]
-	actualwhenpredno <- actual[predict==0]
-	tp <- sum(actualwhenpredyes==1)
-	tn <- sum(actualwhenpredno==0)
-	fp <- length(actualwhenpredyes) - tp
-	fn <- length(actualwhenpredno) - tn
-	precision<-tp/predictyes
-	recall<-tp/(tp+fn)
-	F = 2*precision*recall/(precision+recall)
-	paste("The precision is",precision)
-	paste("The recall is",recall)
-	paste("The F is",F)
+# Generalized Linear Model
+glmr <- glm(f, data=Traindata, family=binomial)
+glmrpredict <- predict(glmr, Traindata)
 
-	modeloutput[3,] <- c(Ynames, precision, recall, F, "cart")
+predict <- ifelse(glmrpredict>0.5, 1, 0)
+predictyes <- sum(predict==1)
+predictno<-sum(predict==0)
+actual <- Traindata[,Ynames]
+actualwhenpredyes <- actual[predict==1]
+actualwhenpredno <- actual[predict==0]
+tp <- sum(actualwhenpredyes==1)
+tn <- sum(actualwhenpredno==0)
+fp <- length(actualwhenpredyes) - tp
+fn <- length(actualwhenpredno) - tn
+precision<-tp/predictyes
+recall<-tp/(tp+fn)
+F = 2*precision*recall/(precision+recall)
+paste("The precision is",precision)
+paste("The recall is",recall)
+paste("The F is",F)
 
-	#knn
-	knnreg <- knn.reg(train = Traindata[,names(Traindata) %in% Xnames2] , test=Traindata[,names(Traindata) %in% Xnames2], y=Traindata[,Ynames], k=5, algorithm = "kd_tree")
-	predict <- ifelse(knnreg$pred>0.5, 1, 0)
-	predictyes <- sum(predict==1)
-	predictno<-sum(predict==0)
-	actual <- Traindata[,Ynames]
-	actualwhenpredyes <- actual[predict==1]
-	actualwhenpredno <- actual[predict==0]
-	tp <- sum(actualwhenpredyes==1)
-	tn <- sum(actualwhenpredno==0)
-	fp <- length(actualwhenpredyes) - tp
-	fn <- length(actualwhenpredno) - tn
-	precision<-tp/predictyes
-	recall<-tp/(tp+fn)
-	F = 2*precision*recall/(precision+recall)
-	paste("The precision is",precision)
-	paste("The recall is",recall)
-	paste("The F is",F)
+modeloutput[2,] <- c(Ynames, precision, recall, F, "glm")
+write.csv(glmr$coefficients,paste0("glmr_",Ynames,".csv"))
 
-	modeloutput[4,] <- c(Ynames, precision, recall, F, "KNN")
+#cart
+cart = rpart(f, data = Traindata, cp = 10^(-3),minsplit = 10,, method = "class")
+cartpredict <- predict(cart, Traindata)
+predict <- ifelse(cartpredict[,2]>0.5, 1, 0)
 
-	#ann
-	set.seed(123)
+predictyes <- sum(predict==1)
+predictno<-sum(predict==0)
+actual <- Traindata[,Ynames]
+actualwhenpredyes <- actual[predict==1]
+actualwhenpredno <- actual[predict==0]
+tp <- sum(actualwhenpredyes==1)
+tn <- sum(actualwhenpredno==0)
+fp <- length(actualwhenpredyes) - tp
+fn <- length(actualwhenpredno) - tn
+precision<-tp/predictyes
+recall<-tp/(tp+fn)
+F = 2*precision*recall/(precision+recall)
+paste("The precision is",precision)
+paste("The recall is",recall)
+paste("The F is",F)
 
-	ann <- neuralnet(f, data=data.matrix(Traindata), hidden=c(5), linear.output=TRUE, stepmax = 100000, threshold=0.001, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 1000)
-	#ann <- neuralnet(f, data=data.matrix(Traindata), hidden=c(10), linear.output=TRUE, stepmax = 200000, threshold=0.5, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 100)
-	#ann <- neuralnet(f, data=data.matrix(Traindata), hidden=c(5), linear.output=TRUE, stepmax = 200000, threshold=0.5, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 100)
-	#ann <- neuralnet(f, data=data.matrix(Traindata), hidden=c(5), linear.output=TRUE, stepmax = 200000, threshold=0.5, act.fct = "logistic", likelihood = TRUE, lifesign ="full", lifesign.step = 100)
-	
-	predict <- ifelse(ann$net.result[[1]][,1]>0.5, 1, 0)
-	predictyes <- sum(predict==1)
-	predictno<-sum(predict==0)
-	actual <- Traindata[,Ynames]
-	actualwhenpredyes <- actual[predict==1]
-	actualwhenpredno <- actual[predict==0]
-	tp <- sum(actualwhenpredyes==1)
-	tn <- sum(actualwhenpredno==0)
-	fp <- length(actualwhenpredyes) - tp
-	fn <- length(actualwhenpredno) - tn
-	precision<-tp/predictyes
-	recall<-tp/(tp+fn)
-	F = 2*precision*recall/(precision+recall)
-	paste("The precision is",precision)
-	paste("The recall is",recall)
-	paste("The F is",F)
+modeloutput[3,] <- c(Ynames, precision, recall, F, "cart")
 
-	modeloutput[5,] <- c(Ynames, precision, recall, F, "ANN")
+#knn
+knnreg <- knn.reg(train = Traindata[,names(Traindata) %in% Xnames2] , test=Traindata[,names(Traindata) %in% Xnames2], y=Traindata[,Ynames], k=5, algorithm = "kd_tree")
+predict <- ifelse(knnreg$pred>0.5, 1, 0)
+predictyes <- sum(predict==1)
+predictno<-sum(predict==0)
+actual <- Traindata[,Ynames]
+actualwhenpredyes <- actual[predict==1]
+actualwhenpredno <- actual[predict==0]
+tp <- sum(actualwhenpredyes==1)
+tn <- sum(actualwhenpredno==0)
+fp <- length(actualwhenpredyes) - tp
+fn <- length(actualwhenpredno) - tn
+precision<-tp/predictyes
+recall<-tp/(tp+fn)
+F = 2*precision*recall/(precision+recall)
+paste("The precision is",precision)
+paste("The recall is",recall)
+paste("The F is",F)
 
+modeloutput[4,] <- c(Ynames, precision, recall, F, "KNN")
 
-	write.csv(modeloutput,paste0("modeloutput2.csv"))
+#ann
+set.seed(123)
+
+ann <- neuralnet(f, data=data.matrix(Traindata), hidden=c(5), linear.output=TRUE, stepmax = 100000, threshold=0.001, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 1000)
+#ann <- neuralnet(f, data=data.matrix(Traindata), hidden=c(10), linear.output=TRUE, stepmax = 200000, threshold=0.5, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 100)
+#ann <- neuralnet(f, data=data.matrix(Traindata), hidden=c(5), linear.output=TRUE, stepmax = 200000, threshold=0.5, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 100)
+#ann <- neuralnet(f, data=data.matrix(Traindata), hidden=c(5), linear.output=TRUE, stepmax = 200000, threshold=0.5, act.fct = "logistic", likelihood = TRUE, lifesign ="full", lifesign.step = 100)
+
+predict <- ifelse(ann$net.result[[1]][,1]>0.5, 1, 0)
+predictyes <- sum(predict==1)
+predictno<-sum(predict==0)
+actual <- Traindata[,Ynames]
+actualwhenpredyes <- actual[predict==1]
+actualwhenpredno <- actual[predict==0]
+tp <- sum(actualwhenpredyes==1)
+tn <- sum(actualwhenpredno==0)
+fp <- length(actualwhenpredyes) - tp
+fn <- length(actualwhenpredno) - tn
+precision<-tp/predictyes
+recall<-tp/(tp+fn)
+F = 2*precision*recall/(precision+recall)
+paste("The precision is",precision)
+paste("The recall is",recall)
+paste("The F is",F)
+
+modeloutput[5,] <- c(Ynames, precision, recall, F, "ANN")
 
 
-#Let's try variable selection	
+write.csv(modeloutput,paste0("modeloutput2.csv"))
+
+
+################################################################
+# Variable selection for linear regression #####################
+################################################################
 rawdata <- read.csv("inputmap.csv", header=TRUE, sep=",", dec=".")
 Xnames <- c("R_","pi_c_","pi_i_","pi_d_","dy_","dc_","di_","dimp_","dex_","dE_")
 Ynames <- names(rawdata)[!names(rawdata) %in% c(Xnames,"Year","Quarter","Recession")]
@@ -322,9 +328,7 @@ for (y in Ynames) {
 	Traindata <- rawdata[,names(rawdata) %in% c(y,Xnames,"Recession")]
 	
 	Xnames1 <- names(Traindata)[!names(Traindata) %in% c("Recession")]
-	if ((y == "spginfrad") || (y == "psped")) {
-		Xnames1 <- Xnames1[!Xnames1 %in% c(y)]
-	}
+
 	if (lag > 0) {
 		for (i in c(1:lag)){
 			for (varname in Xnames1){
@@ -374,7 +378,7 @@ for (y in Ynames) {
 		corr<-cor(lr$residuals,lr$fitted.values)
 		rescorr<-cor(lr$residuals[Traindata$Recession==1],lr$fitted.values[Traindata$Recession==1])
 		modeloutput[nrow(modeloutput)+1,] <- c(y, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr, "LM")
-		write.csv(summary(lr)$coefficients,paste0("lr_",y,".csv"))
+		write.csv(summary(lr)$coefficients,paste0("lr_fs_",y,".csv"))
 		residuals[,y]<-c(rep(NA,nrow(residuals)-length(lr$residuals)),lr$residuals)
 	},
 		error = function(ex) {
@@ -393,7 +397,7 @@ for (y in Ynames) {
 	write.csv(modeloutput,paste0("modeloutput3.csv"))
 	write.csv(residuals,paste0("residuals3.csv"))
 
-#correlation matrix
+#loop to repair correlation matrix for non-positive definite
 repairall <- function(C){
 
 	tryCatch(
@@ -416,8 +420,8 @@ repaircorr<-function(C){
 	V   <- E$vectors
 	D   <- E$values
 
-	# replace negative eigenvalues by zero
-	D   <- pmax(D,0)
+	# replace negative eigenvalues by 0.001
+	D   <- pmax(D,0.001)
 
 	# reconstruct correlation matrix
 	BB  <- V %*% diag(D) %*% t(V)
@@ -428,3 +432,104 @@ repaircorr<-function(C){
 	C   <- BB * TT
 	return (C)
 }
+
+#correlation matrix for expansion periods
+um<-"pairwise.complete.obs" #"pairwise.complete.obs" "complete.obs" "all.obs" "na.or.complete"
+alldata <- read.csv("residuals1.csv", header=TRUE, sep=",", dec=".")
+alldata$Recession <- rawdata$Recession[3:length(rawdata$Recession)] #lag = 2
+cordata <- alldata[alldata$Recession == 0,]
+cordata <- alldata[,!names(alldata) %in% c("Recession", "X")]
+normalcorr <- cor(cordata, use = um, method = "pearson")
+normalcorr[is.na(normalcorr)]<-0
+normalcorr["aaadefault","aaadefault"]<-1
+icount <-0
+while (repairall(normalcorr)==0) {
+	normalcorr <- repaircorr(normalcorr)
+	icount <- icount+1
+	#print(icount)
+}
+normalchol <- chol(normalcorr)
+
+#Alternatively, we can reduce records with NA before calculating correlation matrix.
+#Then there is no need to repair the correlation matrix
+cordata <- cordata[complete.cases(cordata),]
+normalcorr <- cor(cordata, use = um, method = "pearson")
+normalcorr[is.na(normalcorr)]<-0
+normalcorr["aaadefault","aaadefault"]<-1
+icount <-0
+while (repairall(normalcorr)==0) {
+	normalcorr <- repaircorr(normalcorr)
+	icount <- icount+1
+	print(icount)
+}
+normalchol <- chol(normalcorr)
+
+#correlation matrix for recession periods
+cordata <- alldata[alldata$Recession == 1,]
+cordata <- cordata[,!names(cordata) %in% c("Recession","X")]
+recessioncorr <- cor(cordata, use = um, method = "pearson")
+recessioncorr[is.na(recessioncorr)]<-0
+recessioncorr["aaadefault","aaadefault"]<-1
+#recessioncorr <-ifelse(abs(recessioncorr)>abs(normalcorr),recessioncorr,normalcorr)
+icount <-0
+while (repairall(recessioncorr)==0) {
+	recessioncorr <- repaircorr(recessioncorr)
+	icount <- icount+1
+	print(icount)
+}
+recessionchol <- chol(recessioncorr)
+
+colnames(normalcorr) <- Ynames
+colnames(normalchol) <- Ynames
+colnames(recessioncorr) <- Ynames
+colnames(recessionchol) <- Ynames
+write.csv(normalcorr,paste0("normalcorr.csv"),row.names = FALSE)
+write.csv(normalchol,paste0("normalchol.csv"),row.names = FALSE)
+write.csv(recessioncorr,paste0("recessioncorr.csv"),row.names = FALSE)
+write.csv(recessionchol,paste0("recessionchol.csv"),row.names = FALSE)
+
+
+################################################################
+# Fundamental risk factor VAR ##################################
+################################################################
+library(vars)
+rawdata <- read.csv("inputmap.csv", header=TRUE, sep=",", dec=".")
+Xnames <- c("R_","pi_c_","pi_i_","pi_d_","dy_","dc_","di_","dimp_","dex_","dE_")
+
+Traindata <- rawdata[,names(rawdata) %in% c(Xnames)]
+Traindata <- Traindata[complete.cases(Traindata),]
+	
+var1 <- VAR(Traindata, p = 1, type = "const") #both
+stab1 <- stability(var1, h = 0.15, dynamic = FALSE, rescale = TRUE) #type = c("OLS-CUSUM", "Rec-CUSUM", "Rec-MOSUM","OLS-MOSUM", "RE", "ME", "Score-CUSUM", "Score-MOSUM", "fluctuation"),
+plot(stab1)
+
+nr <- length(Xnames) + 1 #2
+varoutput <- matrix(NA,nrow=nr, ncol=length(Xnames))
+colnames(varoutput) <- Xnames
+
+for (i in c(Xnames)) {
+	varoutput[,i] <- var1$varresult[i][[1]]$coefficients
+}
+
+rownames(varoutput) <- names(var1$varresult[i][[1]]$coefficients)
+write.csv(t(varoutput),"varoutput.csv")
+write.csv(summary(var1)$corres,"var1corres.csv")
+
+nchol <- chol(summary(var1)$corres)
+mreturn <- matrix(NA,nrow=202*100,ncol=length(Xnames))
+for (j in c(1:nrow(mreturn))){
+	mreturn[j,] <- (t(nchol) %*% rnorm(length(Xnames)))
+}
+colnames(mreturn) <- Xnames
+write.csv(mreturn,paste0("cvar1output.csv"))
+
+#Solve stable means
+tvaroutput <- t(varoutput)
+A<-tvaroutput[,1:length(Xnames)]
+B<-tvaroutput[,length(Xnames)+1]
+A<- -A
+for (i in c(1:nrow(A))){
+	A[i,i] <- A[i,i]+1
+}
+stablemeans <- solve(A,B)
+
