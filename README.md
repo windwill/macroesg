@@ -44,10 +44,15 @@ Change working directory in setwd("C:/dsge/r")
 ESG using DSGE and multifactor regression. It also includes yield curve interpolation and extropolation, and bond return calculation based on bond yield curve and investment strategy.
 
 Data
-mapping.csv: linear regression model parameters;
+
+mapping.csv: linear regression model parameters
+
 normalchol.csv: Cholesky decomposition for expansion periods
+
 recessionchol.csv: Cholesky decomposition for recession periods
+
 termmix.csv: target term mix for bond fund
+
 migration.csv: credit rating migration matrix, default rate, and recovery rate
 
 Program: ESG.R
