@@ -59,4 +59,4 @@ If you want to use the same folder for a new run, it is advised to clean all the
 
 For Bayesian estimation, if you run multiple chains, a multi-core machine can speed up the estimation process.
 
-Matlab is expected to be faster than Octave but it is not tested for this project.
+Matlab is expected to be faster than Octave running the dynare program but it is not tested for this project.
