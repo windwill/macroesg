@@ -24,6 +24,12 @@ To run the model:
 
 Folder "us" needs to include data file and model file
 
+Results are saved in us_results.mat in the dynare project folder. oo_ contains most of the useful information. To extract the results, you may load the mat in Octave and the output them to a csv file. Or you can do copy and paste if the data volume is small.
+
+load('C:\dynare\us\us_results.mat');
+csvwrite('C:\dynare\us\oo_vd.csv', oo_.variance_decomposition);
+
+
 # Multifactor Regression
 Regression models are used to build the relationships between macroeconomic factors and asset returns. R programs are used to test five model types: linear regression, GLM, CART, KNN, ANN. It also includes prediction of economic recession, repairing correlation matrix for non-positive definite ones, and Vector Autoregressive Model for macroeconomic factors
 
