@@ -3,14 +3,15 @@ library(rpart.plot)
 library(FNN)
 library(neuralnet)
 
-#setwd("C:/dsge/r")
-setwd("C:/temp/2017/dsge/fm")
+setwd("C:/dsge/r")
+#setwd("C:/temp/2017/dsge/fm")
 ################################################################
 # Multifactor regression #######################################
 ################################################################
 rawdata <- read.csv("input/inputmap.csv", header=TRUE, sep=",", dec=".")
-Xnames <- c("R_","pi_c_","pi_i_","pi_d_","dy_","dc_","di_","dimp_","dex_","dE_")
-Ynames <- names(rawdata)[!names(rawdata) %in% c(Xnames,"Year","Quarter","Recession")]
+#rawdata <- rawdata[36:nrow(rawdata),]
+Xnames <- c("R_","pi_c_","dy_","dc_","di_","dE_") #,"pi_i_","pi_d_","dimp_","dex_"
+Ynames <- names(rawdata)[!names(rawdata) %in% c(Xnames,"Year","Quarter","Recession","pi_i_","pi_d_","dimp_","dex_")]
 
 modeloutput <- data.frame(y=character(),
 				 RMSE=double(),
@@ -105,7 +106,7 @@ for (y in Ynames) {
 	#ann
 	set.seed(123)
 
-	ann <- neuralnet(f, data=data.matrix(Traindata), hidden=c(5), linear.output=TRUE, stepmax = 100000, threshold=0.01, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 1000)
+	ann <- neuralnet(f, data=data.matrix(Traindata), hidden=c(10,5), linear.output=TRUE, stepmax = 100000, threshold=0.01, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 1000)
 	#ann <- neuralnet(f, data=data.matrix(Traindata), hidden=c(10), linear.output=TRUE, stepmax = 200000, threshold=0.5, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 100)
 	#ann <- neuralnet(f, data=data.matrix(Traindata), hidden=c(5), linear.output=TRUE, stepmax = 200000, threshold=0.5, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 100)
 	#ann <- neuralnet(f, data=data.matrix(Traindata), hidden=c(5), linear.output=TRUE, stepmax = 200000, threshold=0.5, act.fct = "logistic", likelihood = TRUE, lifesign ="full", lifesign.step = 100)
@@ -490,12 +491,11 @@ write.csv(recessionchol,paste0("recessionchol.csv"),row.names = FALSE)
 
 
 ################################################################
-# Fundamental risk factor VAR ##################################
+# Macroeconomic factor VAR #####################################
 ################################################################
 library(vars)
-rawdata <- read.csv("inputmap.csv", header=TRUE, sep=",", dec=".")
-Xnames <- c("R_","pi_c_","pi_i_","pi_d_","dy_","dc_","di_","dimp_","dex_","dE_")
-
+rawdata <- read.csv("input/varinput.csv", header=TRUE, sep=",", dec=".")
+Xnames <- c("R_","pi_c_","pi_i_","pi_d_","dy_","dc_","di_","dimp_","dex_","dE_","dS_","dw_","dy_star_","pi_star_","R_star_")
 Traindata <- rawdata[,names(rawdata) %in% c(Xnames)]
 Traindata <- Traindata[complete.cases(Traindata),]
 	
@@ -503,33 +503,20 @@ var1 <- VAR(Traindata, p = 1, type = "const") #both
 stab1 <- stability(var1, h = 0.15, dynamic = FALSE, rescale = TRUE) #type = c("OLS-CUSUM", "Rec-CUSUM", "Rec-MOSUM","OLS-MOSUM", "RE", "ME", "Score-CUSUM", "Score-MOSUM", "fluctuation"),
 plot(stab1)
 
-nr <- length(Xnames) + 1 #2
-varoutput <- matrix(NA,nrow=nr, ncol=length(Xnames))
-colnames(varoutput) <- Xnames
+################################################################
+# Fit data to Normal distribution ##############################
+################################################################
+rawdata <- read.csv("input/varinput.csv", header=TRUE, sep=",", dec=".")
+Xnames <- c("R_","pi_c_","pi_i_","pi_d_","dy_","dc_","di_","dimp_","dex_","dE_","dS_","dw_","dy_star_","pi_star_","R_star_")
 
-for (i in c(Xnames)) {
-	varoutput[,i] <- var1$varresult[i][[1]]$coefficients
+LL <- 0
+for (i in Xnames) {
+	Traindata <- rawdata[,names(rawdata) %in% i]
+	Traindata <- as.numeric(Traindata)
+	Traindata <- Traindata[!is.na(Traindata)]
+	fit <- fitdistr(Traindata, densfun="normal")
+	LL<-fit$loglik+LL
 }
 
-rownames(varoutput) <- names(var1$varresult[i][[1]]$coefficients)
-write.csv(t(varoutput),"varoutput.csv")
-write.csv(summary(var1)$corres,"var1corres.csv")
-
-nchol <- chol(summary(var1)$corres)
-mreturn <- matrix(NA,nrow=202*100,ncol=length(Xnames))
-for (j in c(1:nrow(mreturn))){
-	mreturn[j,] <- (t(nchol) %*% rnorm(length(Xnames)))
-}
-colnames(mreturn) <- Xnames
-write.csv(mreturn,paste0("cvar1output.csv"))
-
-#Solve stable means
-tvaroutput <- t(varoutput)
-A<-tvaroutput[,1:length(Xnames)]
-B<-tvaroutput[,length(Xnames)+1]
-A<- -A
-for (i in c(1:nrow(A))){
-	A[i,i] <- A[i,i]+1
-}
-stablemeans <- solve(A,B)
+print(LL)
 
