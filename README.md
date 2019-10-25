@@ -55,7 +55,7 @@ termmix.csv: target term mix for bond fund
 
 migration.csv: credit rating migration matrix, default rate, and recovery rate
 
-Program: ESG.R
+Program: esg.R
 
 # Tips
 Sometimes after you finish a dynare program run, you need to wait a few minutes to kick off new runs as the program may crash.
