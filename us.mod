@@ -378,16 +378,16 @@ rho_ystar      $\rho_y^*$
 % Calibrated parameter values
 %===================================================================================================
 
-beta     = 0.9975; %0.9975; % discount factor
+beta     = 0.9975; % discount factor
 delta    = 0.013; % depreciation rate
-alpha    = 0.23; %(1-0.57); %0.29;  % capital share in production
+alpha    = 0.23; % capital share in production
 A_L      = 7.5;   % constant in labour disutility function
 sigma_L  = 1.00;  % labor supply elasticity
-A_q      = 0.436; %0.3776;
+A_q      = 0.436; 
 sigma_q  = 10.62;
-sigma_a  = 1000000;  % mode: 19.4147 %0000; %0.049; % 1000000;%  capital utilization cost  0.049 - Altig (2003), 1000000 - Adolfson (2007);
+sigma_a  = 1000000;  %  capital utilization cost
 b        = 0.708;  % habit formation
-phi_a    = 0.252;%0.252
+phi_a    = 0.252;
 phi_s    = 0.5;
 
 %---------------------------------------------------------------------------------------------------
@@ -436,12 +436,12 @@ eta_f       = 1.25 ;% substitution elasticity foreign
 % Policy rule dy and dpi also have prior distribution. need to change
 %---------------------------------------------------------------------------------------------------
 
-rho_r       = 0.948; %0.881
-phi_pi        = 0.678; %1.73
-phi_y         = 0.547; %0.104
+rho_r       = 0.948; 
+phi_pi        = 0.678; 
+phi_y         = 0.547; 
 phi_x         = 0;
-phi_dpi       = 0.204; %0.310;
-phi_dy        = 0.086; %0.128;
+phi_dpi       = 0.204; 
+phi_dy        = 0.086; 
 
 %---------------------------------------------------------------------------------------------------
 % Inflation target persistence
@@ -456,7 +456,7 @@ rho_pi   = 0;   % inflation target persistence
 rho_mu_z        = 0.698;
 rho_z           = 0.886;
 rho_i           = 0.720;
-rho_ztildestar  = 0.823829;%0.992;
+rho_ztildestar  = 0.823829;
 rho_c           = 0.892;
 rho_H           = 0.676;
 rho_a           = 0.955;
@@ -470,12 +470,12 @@ rho_nu          = 0.8;
 %---------------------------------------------------------------------------------------------------
 %Tax and fiscal budget VAR model parameters KS need to reset later
 %---------------------------------------------------------------------------------------------------
-c_i_k        = 0.3918; -0.0263; %-0.0263;%0.1;
-c_i_c        = 0.0651;%0.0651;
-c_i_y        = 0.1242;%0.1771;
-c_i_w        = 0.0765;%0.0765;
-c_i_g        = 0;%0.1;
-rho_i_k_k    = 0; 1.0488; %1.0488;
+c_i_k        = 0.3918;
+c_i_c        = 0.0651;
+c_i_y        = 0.1242;
+c_i_w        = 0.0765;
+c_i_g        = 0;
+rho_i_k_k    = 0;
 rho_i_k_c    = 0;
 rho_i_k_y    = 0;
 rho_i_k_w    = 0;
@@ -509,7 +509,7 @@ eps_i_w      = 0;
 % Steady state parameters
 %---------------------------------------------------------------------------------------------------
 
-mu_b_s  = 1.009;    % money growth 1.0017   1.0151
+mu_b_s  = 1.009;    % money growth
 gr       = 0.178;   % G/Y share
 nu_s    = 0.15;    % share of wage bill financed
 mu_z_s  = 1.00397;  % technology growth
@@ -521,11 +521,11 @@ lambda_mc_s = 1.1;
 lambda_mi_s = 1.1; 
 lambda_w_s = 1.05; 
 
-rho_Rstar  = 0.984265; %0.9012;
-sigma_star = 1.3045; %1.4817;
-xi_star = 0.2; %0.1944;
-rho_pistar = 0.8; %-0.2625; %0.8202;
-rho_ystar  = 0.9; %-0.62348; %0.9173;
+rho_Rstar  = 0.984265;
+sigma_star = 1.3045;
+xi_star = 0.2;
+rho_pistar = 0.8;
+rho_ystar  = 0.9;
 
 %---------------------------------------------------------------------------------------------------
 % Calculated steady state parameters
@@ -536,37 +536,36 @@ ic_s = c_i_c/(1-rho_i_c_c);
 iy_s = c_i_y/(1-rho_i_y_y);
 iw_s = c_i_w/(1-rho_i_w_w);
 pi_s       = mu_b_s/mu_z_s; %S.1 KS
-R_s        = (pi_s*mu_z_s-beta*ik_s)/(beta*(1-ik_s))-0.01256;  %S.2 KS  (pi_s*mu_z_s)/beta -0.121 to adjust for low interest rate environment
-eta_mc      = lambda_mc_s/(lambda_mc_s-1); %elasticity of imported goods %S.3 KS
-eta_mi      = lambda_mi_s/(lambda_mi_s-1); %elasticity of imported investment %S.4 KS
-gamma_cd_s = ((1-omega_c)+omega_c*(eta_mc/(eta_mc-1))^(1-eta_c))^(1/(1-eta_c)); %S.5 KS
-gamma_cmc_s = ((1-omega_c)*((eta_mc-1)/eta_mc)^(1-eta_c)+omega_c)^(1/(1-eta_c)); %S.6 KS
-gamma_id_s = ((1-omega_i)+omega_i*(eta_mi/(eta_mi-1))^(1-eta_i))^(1/(1-eta_i)); %S.7 KS
-gamma_imi_s = ((1-omega_i)*((eta_mi-1)/eta_mi)^(1-eta_i)+omega_i)^(1/(1-eta_i)); %S.8 KS
+R_s        = (pi_s*mu_z_s-beta*ik_s)/(beta*(1-ik_s))-0.01256;  %S.2
+eta_mc      = lambda_mc_s/(lambda_mc_s-1); %elasticity of imported goods %S.3
+eta_mi      = lambda_mi_s/(lambda_mi_s-1); %elasticity of imported investment %S.4
+gamma_cd_s = ((1-omega_c)+omega_c*(eta_mc/(eta_mc-1))^(1-eta_c))^(1/(1-eta_c)); %S.5
+gamma_cmc_s = ((1-omega_c)*((eta_mc-1)/eta_mc)^(1-eta_c)+omega_c)^(1/(1-eta_c)); %S.6
+gamma_id_s = ((1-omega_i)+omega_i*(eta_mi/(eta_mi-1))^(1-eta_i))^(1/(1-eta_i)); %S.7
+gamma_imi_s = ((1-omega_i)*((eta_mi-1)/eta_mi)^(1-eta_i)+omega_i)^(1/(1-eta_i)); %S.8
 gamma_dc_s = 1/gamma_cd_s;
 gamma_mcc_s = 1/gamma_cmc_s;
-r_k_s      = (mu_z_s*gamma_id_s-beta*(1-delta)*gamma_id_s)/beta/(1-ik_s); %S.9 KS
+r_k_s      = (mu_z_s*gamma_id_s-beta*(1-delta)*gamma_id_s)/beta/(1-ik_s); %S.9
 %%R_f_s      = nu_s*R_s+1-nu_s; %KS We do not need R_f and R_f_s
-w_s        = (1-alpha)*lambda_d_s^(-1/(1-alpha))*alpha^(alpha/(1-alpha))*r_k_s^(-alpha/(1-alpha)); %%*R_f_s^(-1); %S.10 KS *R_f_s^(-1) %%
+w_s        = (1-alpha)*lambda_d_s^(-1/(1-alpha))*alpha^(alpha/(1-alpha))*r_k_s^(-alpha/(1-alpha)); 
 k_H_s      = alpha/(1-alpha)*mu_z_s*w_s*r_k_s^(-1); %S.11 KS *R_f_s
 T1          = ((mu_z_s-beta*b)/((mu_z_s-b)))*gamma_cd_s^(-1);
 T2          = (1-omega_c)*gamma_cd_s^eta_c+omega_c*gamma_cmc_s^eta_c;
 T3          = (1-gr)/lambda_d_s*mu_z_s^(-alpha)*k_H_s^alpha - ((1-omega_i)*gamma_id_s^eta_i + omega_i*gamma_imi_s^eta_i)*(1-(1-delta)/mu_z_s)*k_H_s;
 T4          = ((1/lambda_w_s*w_s)/A_L)^(1/sigma_L);
 H_s        = (T4*T1^(1/sigma_L)*(T3/T2)^(-1/sigma_L))^(sigma_L/(1+sigma_L)); %S.12 KS
-c_s        = (T3/T2)*H_s; %S.13 KS
-psi_z_s    = 1/c_s*T1; %S.14 KS
+c_s        = (T3/T2)*H_s; %S.13
+psi_z_s    = 1/c_s*T1; %S.14
 k_s        = k_H_s*H_s; % k = k/H * H
 kbar_s     = k_s; %KS full utilization
-i_s        = (1-(1-delta)/mu_z_s)*k_s; %KS 93
+i_s        = (1-(1-delta)/mu_z_s)*k_s; %93
 c_d_s      = (1-omega_c)*gamma_cd_s^eta_c*c_s;
 c_m_s      = omega_c*gamma_cmc_s^eta_c*c_s;
 i_d_s      = (1-omega_i)*gamma_id_s^eta_i*i_s;
 i_m_s      = omega_i*gamma_imi_s^eta_i*i_s;
 imp_s      = c_m_s + i_m_s;
-y_s        = 1/lambda_d_s*(mu_z_s)^(-alpha)*(k_H_s)^alpha*H_s; %S.15 KS
-q_s        = (A_q/(psi_z_s*(R_s-1)*(1-ik_s)))^(1/sigma_q); %S.16 KS
-%%m_s        = nu_s*w_s*H_s + q_s; %not used %%
+y_s        = 1/lambda_d_s*(mu_z_s)^(-alpha)*(k_H_s)^alpha*H_s; %S.15
+q_s        = (A_q/(psi_z_s*(R_s-1)*(1-ik_s)))^(1/sigma_q); %S.16
 y_star_s   = omega_c*gamma_cmc_s^eta_c*c_s+omega_i*gamma_imi_s^eta_i*i_s;
 R_star_s   = (pi_star_s*mu_z_s)/beta;  %KS without capital tax
 dS_s       = pi_s/pi_star_s;
@@ -575,17 +574,17 @@ dS_s       = pi_s/pi_star_s;
 % Wage optimization interim parameters
 %---------------------------------------------------------------------------------------------------
 
-b_w = (lambda_w_s + lambda_w_s*sigma_L - 1)/((1-beta*theta_w)*(1-theta_w)); %KS
+b_w = (lambda_w_s + lambda_w_s*sigma_L - 1)/((1-beta*theta_w)*(1-theta_w));
 phi_0 = (lambda_w_s*sigma_L - b_w*(1 + beta*(theta_w^2)));
 phi_1 = b_w*theta_w;
 phi_2 = b_w*beta*theta_w;
 phi_3 = -b_w*theta_w;
-phi_4 = b_w*beta*theta_w^2; %KS
+phi_4 = b_w*beta*theta_w^2;
 phi_5 = b_w*theta_w*xi_w;
-phi_6 = -b_w*beta*theta_w^2*xi_w; %KS
+phi_6 = -b_w*beta*theta_w^2*xi_w;
 phi_7 = -(1 - lambda_w_s);
-phi_8 = -iy_s*(1 - lambda_w_s)/(1-iy_s); %KS
-phi_9 = -iw_s*(1 - lambda_w_s)/(1+iw_s); %KS
+phi_8 = -iy_s*(1 - lambda_w_s)/(1-iy_s);
+phi_9 = -iw_s*(1 - lambda_w_s)/(1+iw_s);
 phi_10 = -(1 - lambda_w_s)*sigma_L;
 phi_11 = -(1 - lambda_w_s);
 
@@ -596,173 +595,165 @@ phi_11 = -(1 - lambda_w_s);
 model(linear);
 
 %---------------------------------------------------------------------------------------------------
-% Capital services (L.1 KS)
+% Capital services (L.1)
 %---------------------------------------------------------------------------------------------------
-u = k - kbar(-1); %(-1)KS %%
+u = k - kbar(-1);
 
 %---------------------------------------------------------------------------------------------------
-% Output (L.2 KS)
+% Output (L.2)
 %---------------------------------------------------------------------------------------------------
 y = lambda_d_s*(e_z + alpha*(k - mu_z) + (1-alpha)*H);
 
 %---------------------------------------------------------------------------------------------------
-% Rental rate of capital (L.3 KS)
+% Rental rate of capital (L.3)
 %---------------------------------------------------------------------------------------------------
 
 r_k = w + mu_z - k + H;
 
 %---------------------------------------------------------------------------------------------------
-% Domestic marginal cost (L.4 KS)
+% Domestic marginal cost (L.4)
 %---------------------------------------------------------------------------------------------------
 % mc_d = alpha*r_k + (1-alpha)*(w + R_f) - e_z;
 mc_d = alpha*r_k + (1-alpha)*w - e_z;
 
 %---------------------------------------------------------------------------------------------------
-% Domestic Phillips curve (L.6 KS L.5 is included in L.6 and not listed here)
+% Domestic Phillips curve (L.6; L.5 is included in L.6 and not listed here)
 %---------------------------------------------------------------------------------------------------
 pi_d = pi_cbar + beta/(1+xi_d*beta)*(pi_d(+1) - rho_pi*pi_cbar) 
      + xi_d/(1+xi_d*beta)*(pi_d(-1) - pi_cbar) 
      - (xi_d*beta*(1-rho_pi)/(1+xi_d*beta))*pi_cbar 
-     + (((1-theta_d)*(1-theta_d*beta))/(theta_d*(1+xi_d*beta)))*(mc_d) + lambda_d; %KS %%
+     + (((1-theta_d)*(1-theta_d*beta))/(theta_d*(1+xi_d*beta)))*(mc_d) + lambda_d;
 
 %---------------------------------------------------------------------------------------------------
-% Exporter marginal cost (L.29 KS) used by mc_mc and mc_mi below.
+% Exporter marginal cost (L.29) used by mc_mc and mc_mi below.
 %---------------------------------------------------------------------------------------------------
 mc_x = mc_x(-1) + pi_d - pi_x - dS;
 
 %---------------------------------------------------------------------------------------------------    
-% Imported Consumption marginal cost (L.26 & L.28 KS) used by L.7 for imported consumption
+% Imported Consumption marginal cost (L.26 & L.28) used by L.7 for imported consumption
 %---------------------------------------------------------------------------------------------------
 mc_mc = - mc_x - gamma_xstar - gamma_mcd;
 
 %---------------------------------------------------------------------------------------------------
-% Imported Consumption Phillips curve (L.7 KS)
+% Imported Consumption Phillips curve (L.7)
 %---------------------------------------------------------------------------------------------------
 pi_mc = pi_cbar + (beta/(1+xi_mc*beta))*(pi_mc(+1) - rho_pi*pi_cbar) 
       + (xi_mc/(1+xi_mc*beta))*(pi_mc(-1) - pi_cbar) 
       - (xi_mc*beta*(1-rho_pi)/(1+xi_mc*beta))*pi_cbar 
-      + (((1-theta_mc)*(1-theta_mc*beta))/(theta_mc*(1+xi_mc*beta)))*(mc_mc) + lambda_mc; %KS %%
+      + (((1-theta_mc)*(1-theta_mc*beta))/(theta_mc*(1+xi_mc*beta)))*(mc_mc) + lambda_mc;
 
 %---------------------------------------------------------------------------------------------------
-% Imported Investment marginal cost (L.27 & L.28 KS) used by L.7 for imported investment
+% Imported Investment marginal cost (L.27 & L.28) used by L.7 for imported investment
 %---------------------------------------------------------------------------------------------------
 mc_mi = - mc_x - gamma_xstar - gamma_mid;
 
 %---------------------------------------------------------------------------------------------------
-% Imported Investment Phillips curve (L.7 KS)
+% Imported Investment Phillips curve (L.7)
 %---------------------------------------------------------------------------------------------------
 pi_mi = pi_cbar + (beta/(1+xi_mi*beta))*(pi_mi(+1) - rho_pi*pi_cbar) 
       + (xi_mi/(1+xi_mi*beta))*(pi_mi(-1) - pi_cbar) 
       - (xi_mi*beta*(1-rho_pi)/(1+xi_mi*beta))*pi_cbar 
-      + (((1-theta_mi)*(1-theta_mi*beta))/(theta_mi*(1+xi_mi*beta)))*(mc_mi) + lambda_mi; %KS %%
+      + (((1-theta_mi)*(1-theta_mi*beta))/(theta_mi*(1+xi_mi*beta)))*(mc_mi) + lambda_mi;
      
 %---------------------------------------------------------------------------------------------------
-% Exporter Phillips curve (L.8 KS)
+% Exporter Phillips curve (L.8)
 %---------------------------------------------------------------------------------------------------
 
 pi_x = (beta/(1+beta))*pi_x(+1)
      + (1/(1+beta))*pi_x(-1)
-     + (((1-theta_x)*(1-theta_x*beta))/(theta_x*(1+beta)))*(mc_x) + lambda_x;  %KS
+     + (((1-theta_x)*(1-theta_x*beta))/(theta_x*(1+beta)))*(mc_x) + lambda_x;
      
 %---------------------------------------------------------------------------------------------------
 % Exports
 %---------------------------------------------------------------------------------------------------
 
-ex = -eta_f*gamma_xstar + y_star + z_tildestar; %30 KS
+ex = -eta_f*gamma_xstar + y_star + z_tildestar; %30
 
 %---------------------------------------------------------------------------------------------------
-% Real wage (L.9 KS)
+% Real wage (L.9)
 %---------------------------------------------------------------------------------------------------
 w = -(1/phi_0)*(phi_1*w(-1) + phi_2*w(+1) + phi_3*(pi_d - pi_cbar) + phi_4*(pi_d(+1) 
   - rho_pi*pi_cbar) + phi_5*(pi_c(-1) - pi_cbar) + phi_6*(pi_c - rho_pi*pi_cbar) + phi_7*psi_z 
-  + phi_8*i_y + phi_9*i_w + phi_10*H + e_H); %+ e_H; % + eta_11*e_H); %  + eta_9*tau_y + eta_10*tau_w %%phi_11*
+  + phi_8*i_y + phi_9*i_w + phi_10*H + e_H); %+ e_H; % + eta_11*e_H); %  + eta_9*tau_y + eta_10*tau_w
 
 %---------------------------------------------------------------------------------------------------
-% Capital law-of-motion (L.10 KS)
+% Capital law-of-motion (L.10)
 %---------------------------------------------------------------------------------------------------
-kbar = (1-delta)*1/mu_z_s*kbar(-1) - (1-delta)*1/mu_z_s*mu_z + (1-(1-delta)*1/mu_z_s)*(i)  + e_i; %KS %%(i + e_i)
-%(1-(1-delta)*1/mu_z_s)=i_s/k_s
+kbar = (1-delta)*1/mu_z_s*kbar(-1) - (1-delta)*1/mu_z_s*mu_z + (1-(1-delta)*1/mu_z_s)*(i)  + e_i;
 
 %---------------------------------------------------------------------------------------------------
-% Consumption Euler equation (L.11 KS)
+% Consumption Euler equation (L.11)
 %---------------------------------------------------------------------------------------------------
 c = ((mu_z_s*b)/(mu_z_s^2+beta*(b^2)))*c(-1) + ((mu_z_s*b*beta)/(mu_z_s^2+beta*(b^2)))*c(+1) 
   - ((mu_z_s*b)/(mu_z_s^2+beta*(b^2)))*(mu_z - beta*mu_z(+1)) 
   - (((mu_z_s-b)*(mu_z_s-beta*b))/(mu_z_s^2+beta*(b^2)))*(psi_z + gamma_cd) 
   + ((mu_z_s-b)/(mu_z_s^2+beta*(b^2)))*(- b*beta*e_c(+1)) + e_c 
   - (((mu_z_s-b)*(mu_z_s-beta*b))/(mu_z_s^2+beta*(b^2)))*ic_s/(1+ic_s)*i_c; 
-  %*(-b*beta*e_c(+1)) + e_c;  
-  %KS %%mu_z_s*e_c 
   
 %---------------------------------------------------------------------------------------------------
-% Optimal investment (L.12 KS)
+% Optimal investment (L.12)
 %---------------------------------------------------------------------------------------------------
 
 i = (1/((mu_z_s^2*phi_i)*(1+beta)))*((mu_z_s^2*phi_i)*(i(-1) + beta*i(+1)- mu_z + beta*mu_z(+1)) 
-  + P_k - gamma_id) + e_i; %+ e_i; %KS%%
-
+  + P_k - gamma_id) + e_i; %+ e_i;
 %---------------------------------------------------------------------------------------------------
-% Price of capital (L.13 KS)
+% Price of capital (L.13)
 %---------------------------------------------------------------------------------------------------
 P_k = ((beta*(1-delta))/mu_z_s)*P_k(+1) + (psi_z(+1) - psi_z) - mu_z(+1) 
     + ((mu_z_s - beta*(1-delta))/mu_z_s)*r_k(+1)
-	-((mu_z_s - beta*(1-delta))/mu_z_s)*ik_s/(1-ik_s)*i_k; %KS
+	-((mu_z_s - beta*(1-delta))/mu_z_s)*ik_s/(1-ik_s)*i_k;
 
 %---------------------------------------------------------------------------------------------------
-% Capacity utilization (L.14 KS)
+% Capacity utilization (L.14)
 %---------------------------------------------------------------------------------------------------
-u = 1/sigma_a*r_k - 1/sigma_a*ik_s/(1-ik_s)*i_k;  %- 1/sigma_a*tau_k_s/(1 - tau_k_s)*tau_k; %KS
+u = 1/sigma_a*r_k - 1/sigma_a*ik_s/(1-ik_s)*i_k;  %- 1/sigma_a*tau_k_s/(1 - tau_k_s)*tau_k;
 
 %---------------------------------------------------------------------------------------------------
-% Optimal cash holdings (L.15 KS)
+% Optimal cash holdings (L.15)
 %---------------------------------------------------------------------------------------------------
-q = -1/sigma_q * psi_z + 1/sigma_q*ik_s/(1-ik_s)*i_k - 1/sigma_q*R_s/(R_s-1)*R(-1); %KS
+q = -1/sigma_q * psi_z + 1/sigma_q*ik_s/(1-ik_s)*i_k - 1/sigma_q*R_s/(R_s-1)*R(-1);
 
 %---------------------------------------------------------------------------------------------------
-% Optimal asset holdings (L.16 KS)
+% Optimal asset holdings (L.16)
 %---------------------------------------------------------------------------------------------------
-psi_z = psi_z(+1) - mu_z(+1) + R_s*(1-ik_s)/(R_s-ik_s*(R_s-1))*R - ik_s*(R_s-1)/(R_s-ik_s*(R_s-1))*i_k(+1) - pi_d(+1); %KS
+psi_z = psi_z(+1) - mu_z(+1) + R_s*(1-ik_s)/(R_s-ik_s*(R_s-1))*R - ik_s*(R_s-1)/(R_s-ik_s*(R_s-1))*i_k(+1) - pi_d(+1);
       
 %---------------------------------------------------------------------------------------------------
-% Nominal exchange rate (L.18 KS;  L.17 is included in L.18 & L.16)
+% Nominal exchange rate (L.18;  L.17 is included in L.18 & L.16)
 %---------------------------------------------------------------------------------------------------
-% Standard UIP
-% R = dS(+1) + R_star - phi_a*a + e_a;
-
-% Modified UIP  (L.18 KS L.17 is included in L.18 & L.16)
 R = (1-phi_s)*dS(+1) - phi_s*dS + R_star - phi_a*a + e_a;
 
 %---------------------------------------------------------------------------------------------------
-% 62 Tax VAR KS
+% 62 Tax VAR
 %---------------------------------------------------------------------------------------------------
 i_k  = c_i_k+ rho_i_k_k*i_k(-1)+ eps_i_k; %% + rho_i_k_c*i_c(-1) + rho_i_k_y*i_y(-1) + rho_i_k_w*i_w(-1) + rho_i_k_g * g(-1) + eps_i_k;
-i_c  = c_i_c + eps_i_c; %% + rho_i_c_k*i_k(-1) + rho_i_c_c*i_c(-1) + rho_i_c_y*i_y(-1) + rho_i_c_w*i_w(-1) + rho_i_c_g * g(-1) + eps_i_c;
-i_y  = c_i_y + eps_i_y; %% + rho_i_y_k*i_k(-1) + rho_i_y_c*i_c(-1) + rho_i_y_y*i_y(-1) + rho_i_y_w*i_w(-1) + rho_i_y_g * g(-1)  + eps_i_y;
-i_w  = c_i_w + eps_i_w; %% + rho_i_w_k*i_k(-1) + rho_i_w_c*i_c(-1) + rho_i_w_y*i_y(-1) + rho_i_w_w*i_w(-1) + rho_i_w_g * g(-1)  + eps_i_w;
+i_c  = c_i_c + eps_i_c;
+i_y  = c_i_y + eps_i_y;
+i_w  = c_i_w + eps_i_w;
 
 %---------------------------------------------------------------------------------------------------
-% Goverment spending (62 VAR KS)
+% Goverment spending (62 VAR)
 %---------------------------------------------------------------------------------------------------
 g = rho_g * g(-1) + eps_g; %%c_i_g + rho_i_g_k*i_k(-1) + rho_i_g_c*i_c(-1) + rho_i_g_y*i_y(-1) + rho_i_g_w*i_w(-1) + rho_i_g_g * g(-1) + eps_g;
 
 %---------------------------------------------------------------------------------------------------
 % Policy rule (63 KS removed four period average)
 %---------------------------------------------------------------------------------------------------
-R = rho_r*R(-1) + (1-rho_r)*(pi_cbar + phi_pi*(pi_c(-1)-pi_cbar) + phi_y*y(-1) + phi_x*x(-1)) 
-  + phi_dpi*(pi_c - pi_c(-1)) + phi_dy*(y - y(-1)) + eps_r;
+R = rho_r*R(-1) + (1-rho_r)*(pi_cbar + phi_pi*(pi_c(-1)-pi_cbar) + phi_y*y(-1) %+ phi_x*x(-1) 
+	+ phi_dpi*(pi_c - pi_c(-1)) + phi_dy*(y - y(-1))) + eps_r;
 
 %---------------------------------------------------------------------------------------------------
-% CPI inflation (64 KS)
+% CPI inflation (64)
 %---------------------------------------------------------------------------------------------------
 pi_c = ((1-omega_c)*(1/gamma_cd_s)^(1-eta_c))*pi_d + ((omega_c)*(1/gamma_cmc_s)^(1-eta_c))*pi_mc;
 
 %---------------------------------------------------------------------------------------------------
-% Investment price deflator (64 KS)
+% Investment price deflator (64)
 %---------------------------------------------------------------------------------------------------
 pi_i = ((1-omega_i)*(1/gamma_id_s)^(1-eta_i))*pi_d + ((omega_i)*(1/gamma_imi_s)^(1-eta_i))*pi_mi;
 
 %---------------------------------------------------------------------------------------------------
-% Aggregate resource constraint (L.19 KS)
+% Aggregate resource constraint (L.19)
 %---------------------------------------------------------------------------------------------------
 y = (1-omega_c)*gamma_cd_s^eta_c*c_s/y_s*(c+eta_c*gamma_cd) 
   + (1-omega_i)*gamma_id_s^eta_i*i_s/y_s*(i+eta_i*gamma_id) 
@@ -770,10 +761,8 @@ y = (1-omega_c)*gamma_cd_s^eta_c*c_s/y_s*(c+eta_c*gamma_cd)
   + (1-ik_s)*r_k_s*kbar_s/(y_s*mu_z_s)*(k-kbar(-1));
 
 %---------------------------------------------------------------------------------------------------
-% Law of motion for Net Foreign Assets (L.20 KS (pi_star_s)*(1/beta)==R_s/mu_z_s)
+% Law of motion for Net Foreign Assets (L.20 (pi_star_s)*(1/beta)==R_s/mu_z_s)
 %---------------------------------------------------------------------------------------------------
-% With R_star ~= R (and no taxes)
-
 a = -y_star_s*mc_x - eta_f*y_star_s*gamma_xstar + y_star_s*y_star + y_star_s*z_tildestar 
   + (c_m_s + i_m_s)*gamma_f - (c_m_s*(-eta_c*(1-omega_c)*(gamma_cd_s)^(-(1-eta_c))*gamma_mcd + c) 
   + i_m_s*(-eta_i*(1-omega_i)*(gamma_id_s)^(-(1-eta_i))*gamma_mid + i)) 
@@ -782,24 +771,24 @@ a = -y_star_s*mc_x - eta_f*y_star_s*gamma_xstar + y_star_s*y_star + y_star_s*z_t
 %---------------------------------------------------------------------------------------------------
 % Relative prices
 %---------------------------------------------------------------------------------------------------
-gamma_mcd    = gamma_mcd(-1) + pi_mc - pi_d; %L.23 KS
-gamma_mid    = gamma_mid(-1) + pi_mi - pi_d; %L.24 KS
-gamma_xstar  = gamma_xstar(-1) + pi_x - pi_star; %L.25 KS
-gamma_cd     = (1-(1-omega_c)*(gamma_cd_s)^(eta_c-1))*gamma_mcd; %L.21 KS (a transformed version)
-gamma_id     = (1-(1-omega_i)*(gamma_id_s)^(eta_i-1))*gamma_mid; %L.22 KS (a transformed version)
-gamma_f      = mc_x + gamma_xstar; %L.28 KS
+gamma_mcd    = gamma_mcd(-1) + pi_mc - pi_d; %L.23
+gamma_mid    = gamma_mid(-1) + pi_mi - pi_d; %L.24
+gamma_xstar  = gamma_xstar(-1) + pi_x - pi_star; %L.25
+gamma_cd     = (1-(1-omega_c)*(gamma_cd_s)^(eta_c-1))*gamma_mcd; %L.21 (a transformed version)
+gamma_id     = (1-(1-omega_i)*(gamma_id_s)^(eta_i-1))*gamma_mid; %L.22 (a transformed version)
+gamma_f      = mc_x + gamma_xstar; %L.28
 
 %---------------------------------------------------------------------------------------------------
-% Real exchange rate (L.30 KS)
+% Real exchange rate (L.30)
 %---------------------------------------------------------------------------------------------------
 x = -omega_c*(gamma_cmc_s)^(-(1-eta_c))*gamma_mcd - gamma_xstar - mc_x;
 
 %---------------------------------------------------------------------------------------------------
 % Foreign economy 
 %---------------------------------------------------------------------------------------------------
-R_star = rho_Rstar*R_star(-1) +(1-rho_Rstar)*(4.39*pi_star + 0.255*y_star) + eps_Rstar; %85 KS maybe change 1.5 and 0.125 to parameters
-y_star = y_star(+1) - (1/sigma_star)*(R_star - pi_star(+1) + e_ystar); %83 KS
-pi_star = beta*pi_star(+1) + xi_star*y_star + e_pistar; %84 KS
+R_star = rho_Rstar*R_star(-1) +(1-rho_Rstar)*(4.39*pi_star + 0.255*y_star) + eps_Rstar; %85 KS
+y_star = y_star(+1) - (1/sigma_star)*(R_star - pi_star(+1) + e_ystar); %83
+pi_star = beta*pi_star(+1) + xi_star*y_star + e_pistar; %84
 e_pistar = rho_pistar*e_pistar(-1) + eps_pistar; %exogenous KS
 e_ystar = rho_ystar*e_ystar(-1) + eps_ystar; %exogenous KS
 
@@ -823,34 +812,33 @@ pi_mi4  = 4*pi_s*pi_mi;
 %---------------------------------------------------------------------------------------------------
 % Measurement equations
 %---------------------------------------------------------------------------------------------------
-R_      = R + 100*log(R_s); %L.45 KS
-pi_c_   = pi_c + 100*log(pi_s) + 0.2; %L.39 KS	
-pi_cbar_= pi_cbar + 100*log(pi_s); %L. 43 KS
-pi_i_   = pi_i + 100*log(pi_s) + me_pi_i - 0.2; %L.41 KS
-pi_d_   = pi_d + 100*log(pi_s) + me_pi_d + 0.15; %L.40 KS
-dy_     = y - y(-1) + mu_z + log(mu_z_s)*100 + me_y  - alpha*(k - k(-1) - kbar(-1) + kbar(-2)); %L.31 KS removing the installed capital that is not utilized. %%- kbar + kbar(-1)
+R_      = R + 100*log(R_s); %L.45
+pi_c_   = pi_c + 100*log(pi_s); %L.39
+pi_cbar_= pi_cbar + 100*log(pi_s); %L.43
+pi_i_   = pi_i + 100*log(pi_s) + me_pi_i - 0.4; %L.41
+pi_d_   = pi_d + 100*log(pi_s) + me_pi_d; %L.40
+dy_     = y - y(-1) + mu_z + log(mu_z_s)*100 + me_y  - alpha*(k - k(-1) - kbar(-1) + kbar(-2)); %L.31 removing the installed capital that is not utilized.
 dc_     = ((eta_c*c_d_s)/(c_m_s+c_d_s))*(c_m_s/c_s)*((lambda_mc_s-1)/gamma_cd_s)*(pi_mc 
-        - pi_d) + c - c(-1) + mu_z + log(mu_z_s + 0.0053)*100 + me_c; %L.32 KS Why 0.0015
+        - pi_d) + c - c(-1) + mu_z + log(mu_z_s + 0.0053)*100 + me_c; %L.32
 di_     = ((eta_i*i_d_s)/(i_m_s+i_d_s))*(i_m_s/i_s)*((lambda_mi_s-1)/gamma_id_s)*(pi_mi 
-        - pi_d) + i - i(-1) + mu_z + log(mu_z_s + 0.0067)*100 + me_i; %L.33 KS Why 0.01125
+        - pi_d) + i - i(-1) + mu_z + log(mu_z_s + 0.0067)*100 + me_i; %L.33
 dimp_   = (c_m_s/(c_m_s+i_m_s))*(-eta_c*(1-omega_c)*((gamma_cd_s)^(eta_c-1))*(pi_mc - pi_d) 
         + c - c(-1)) + (i_m_s/(c_m_s+i_m_s))*(-eta_i*(1-omega_i)*((gamma_id_s)^(eta_i-1))*(pi_mi 
-        - pi_d) + i - i(-1)) + mu_z + log(mu_z_s + 0.0089)*100 + me_imp; %L.35 KS Why 0.0065
+        - pi_d) + i - i(-1)) + mu_z + log(mu_z_s + 0.0089)*100 + me_imp; %L.35
 dex_    = -eta_f*(pi_x - pi_star) + y_star - y_star(-1) + z_tildestar - z_tildestar(-1) + mu_z 
-        + log(mu_z_s + 0.0073)*100 + me_ex;  % export growth 2 per cent p.a. over sample  %L.34 KS Why -0.0035
-dS_     = dS + 100*log(dS_s) + 0.19; %L.44 KS dS_s=pi_s/pi_star_s
-dy_star_= y_star - y_star(-1) + z_tildestar - z_tildestar(-1) + mu_z + log(mu_z_s)*100 + me_ystar +0.54; %L.36 KS 0.5 average difference between major trading partners and U.S.
-pi_star_= pi_star + 100*log(pi_star_s); %L.42 KS
-R_star_ = R_star + 100*log(R_star_s)+0.71; %L.46 KS
+        + log(mu_z_s + 0.0073)*100 + me_ex; %L.34
+dS_     = dS + 100*log(dS_s) + 0.19; %L.44 dS_s=pi_s/pi_star_s
+dy_star_= y_star - y_star(-1) + z_tildestar - z_tildestar(-1) + mu_z + log(mu_z_s)*100 + me_ystar +0.54; %L.36
+pi_star_= pi_star + 100*log(pi_star_s); %L.42
+R_star_ = R_star + 100*log(R_star_s)+0.71; %L.46
 dE_      = E - E(-1) + log(1.000682)*100 + me_E; %L.38
-dw_     = w - w(-1) + mu_z + log(mu_z_s)*100 + pi_d + log(pi_s)*100 + me_w - 0.085; %L.37 KS
+dw_     = w - w(-1) + mu_z + log(mu_z_s)*100 + pi_d + log(pi_s)*100 + me_w - 0.085; %L.37
 
 %---------------------------------------------------------------------------------------------------
 % Employment equation
 %---------------------------------------------------------------------------------------------------
 E = beta/(1+beta)*E(+1) + (1/(1+beta))*E(-1) 
   + ((1-theta_e)*(1-beta*theta_e))/((1+beta)*theta_e)*(H-E);
-%%E = H; %KS We use total hours worked as employment data
 
 %---------------------------------------------------------------------------------------------------
 % Shock processes (17) (exogenous KS)
@@ -867,7 +855,7 @@ lambda_mi   = rho_lambda_mi*lambda_mi(-1) + eps_mi;
 z_tildestar = rho_ztildestar*z_tildestar(-1) + eps_z_tildestar;
 mu_z        = rho_mu_z*mu_z(-1) + eps_mu_z;
 pi_cbar = rho_pi*pi_cbar(-1) + eps_pi_cbar;
-%pi_cbar = pi_cbar(-1);
+
 %---------------------------------------------------------------------------------------------------
 end;
 %---------------------------------------------------------------------------------------------------
@@ -877,18 +865,17 @@ end;
 %==========================================================================
 
 shocks;
-var me_w;    stderr	sqrt(0.114)		;	%	 0.15;
-var me_E;  	 stderr	sqrt(0.051)		;	%	 0.15;
-var me_pi_d; stderr	sqrt(0.15)		; 	%sqrt(0.264)
-var me_pi_i; stderr	sqrt(0.184)		;	%	 0.15;
-var me_y;  	 stderr	sqrt(0.036)		;	%	 0.15;
-var me_c; 	 stderr	sqrt(0.053)		;	%	 0.15;
-var me_i;  	 stderr	sqrt(0.346)		;	%	 0.15;
-var me_imp;  stderr	sqrt(1.364)		;	%	 0.15;
-var me_ex;   stderr	sqrt(1.925)		;	%	 0.15;
-var me_ystar;stderr	sqrt(0.041)		;	%	 0.15;
-
-var eps_g;   stderr 0.98; %%
+var me_w;    stderr	sqrt(0.114);	
+var me_E;  	 stderr	sqrt(0.051);	
+var me_pi_d; stderr	sqrt(0.15); 	
+var me_pi_i; stderr	sqrt(0.184);	
+var me_y;  	 stderr	sqrt(0.036);	
+var me_c; 	 stderr	sqrt(0.053);	
+var me_i;  	 stderr	sqrt(0.346);	
+var me_imp;  stderr	sqrt(1.364);	
+var me_ex;   stderr	sqrt(1.925);	
+var me_ystar;stderr	sqrt(0.041);	
+var eps_g;   stderr 0.98;
 
 %---------------------------------------------------------------------------------------------------
 end;
@@ -898,39 +885,22 @@ end;
 % Define observable variables
 %==========================================================================
 varobs 
-%R_ 
-%pi_c_  
-%pi_cbar_  
-%dy_ 
-%dc_ 
-%di_ 
-%dy_star_ 
-%dE_ 
-%pi_star_ 
-%R_star_ 
-%dS_ 
-%dex_ 
-%dimp_ 
-%dw_ 
-%pi_i_ 
-%pi_d_ 
-
-R_                      %domestic policy interest rate
-pi_c_					%CPI
-pi_cbar_                %inflation target
-pi_i_                   %investment inflation
-pi_d_                   %domestic goods inflation
-dy_                     %change in real GDP
-dc_                     %change in consumption
-di_                     %change in investment
-dimp_                   %change in import
-dex_                    %change in export
-dy_star_                %change in foreign real GDP
-pi_star_                %change in foreign inflation rate
-R_star_                 %foreign policy interest rate
-dE_                     %change in employment
-dS_                     %change in nominal exchange rate (rather than real exchange rate)
-dw_                     %change in employee compensation
+R_                %domestic policy interest rate
+pi_c_			  %CPI
+pi_cbar_          %inflation target
+pi_i_             %investment inflation
+pi_d_             %domestic goods inflation
+dy_               %change in real GDP
+dc_               %change in consumption
+di_               %change in investment
+dimp_             %change in import
+dex_              %change in export
+dy_star_          %change in foreign real GDP
+pi_star_          %change in foreign inflation rate
+R_star_           %foreign policy interest rate
+dE_               %change in employment
+dS_               %change in nominal exchange rate (rather than real exchange rate)
+dw_               %change in employee compensation
 
 ;
 
@@ -942,221 +912,81 @@ estimated_params;
 %---------------------------------------------------------------------------------------------------
 % Adjustment costs
 %---------------------------------------------------------------------------------------------------
-
-phi_i,          normal_pdf, 9.5679, 1.5;
+phi_i,          normal_pdf, 8.1899, 1.5;
 
 %---------------------------------------------------------------------------------------------------
 % Consumption
 %---------------------------------------------------------------------------------------------------
-b,              beta_pdf, 0.825, 0.1;
+b,              beta_pdf, 0.79, 0.1;
 
 %---------------------------------------------------------------------------------------------------
 % Calvo parameters
 %---------------------------------------------------------------------------------------------------
-theta_d,        beta_pdf, 0.8, 0.05;
-theta_mc,       beta_pdf, 0.8, 0.05;
-theta_mi,       beta_pdf, 0.8, 0.05;
+theta_d,        beta_pdf, 0.9, 0.05;
+theta_mc,       beta_pdf, 0.9, 0.05;
+theta_mi,       beta_pdf, 0.76, 0.05;
 theta_x,        beta_pdf, 0.5, 0.05;
-theta_e,        beta_pdf, 0.8, 0.05;
-
-%---------------------------------------------------------------------------------------------------
-% Indexation
-%---------------------------------------------------------------------------------------------------
-%xi_d,        beta_pdf, 0.75, 0.1;
-%xi_mc,       beta_pdf, 0.75, 0.1;
-%xi_mi,       beta_pdf, 0.75, 0.1;
-% xi_x,        beta_pdf, 0.75, 0.1;
+theta_e,        beta_pdf, 0.9, 0.05;
 
 %---------------------------------------------------------------------------------------------------
 % Exchange rate
 %---------------------------------------------------------------------------------------------------
-phi_a,          inv_gamma_pdf, 0.06, 1; %inf
-phi_s,          uniform_pdf, , , 0, 1;
+phi_a,          inv_gamma_pdf, 0.04, 1; 
+phi_s,          inv_gamma_pdf, 0.6, 1; 
 
 %---------------------------------------------------------------------------------------------------
 % Taylor rules
 %---------------------------------------------------------------------------------------------------
-rho_r,            beta_pdf, 0.9, 0.05; %0.8
-phi_pi,           gamma_pdf, 0.71, 0.15; %1.7  , 1, inf
-phi_dpi,          gamma_pdf, 0.38, 0.1; %0.3
-phi_y,            gamma_pdf, 0.49, 0.05;  %0.25
-phi_dy,           gamma_pdf, 0.38, 0.1;  %0.125
-phi_x,            normal_pdf, 0.013, 0.05;  %KS
+rho_r,          beta_pdf, 0.89, 0.05; 
+phi_pi,         gamma_pdf, 0.95, 0.15; 
+phi_dpi,        gamma_pdf, 0.1, 0.05; 
+phi_y,          gamma_pdf, 0.49, 0.1;  
+phi_dy,         gamma_pdf, 0.11, 0.1;  
+phi_x,          normal_pdf, 0.024, 0.05;  
 
 %---------------------------------------------------------------------------------------------------
 % Persistence parameters
 %---------------------------------------------------------------------------------------------------
-rho_mu_z,       beta_pdf, 0.85, 0.1;
-rho_z,          beta_pdf, 0.85, 0.1;
-rho_i,          beta_pdf, 0.85, 0.1;
-rho_ztildestar, beta_pdf, 0.85, 0.1;
-rho_c,          beta_pdf, 0.85, 0.1;
-rho_H,          beta_pdf, 0.85, 0.1;
-rho_a,          beta_pdf, 0.85, 0.1;
-%rho_lambda_d,   beta_pdf, 0.85, 0.1;
-rho_lambda_mc,  beta_pdf, 0.85, 0.1;
-rho_lambda_mi,  beta_pdf, 0.85, 0.1;
-rho_lambda_x,   beta_pdf, 0.85, 0.1;
-%rho_pi,         beta_pdf, 0.75, 0.1;
+rho_mu_z,       beta_pdf, 0.7, 0.1;
+rho_z,          beta_pdf, 0.88, 0.1;
+rho_i,          beta_pdf, 0.6, 0.1;
+rho_ztildestar, beta_pdf, 0.8, 0.1;
+rho_c,          beta_pdf, 0.65, 0.1;
+rho_H,          beta_pdf, 0.64, 0.1;
+rho_a,          beta_pdf, 0.54, 0.1;
+rho_lambda_mc,  beta_pdf, 0.6, 0.1;
+rho_lambda_mi,  beta_pdf, 0.77, 0.1;
+rho_lambda_x,   beta_pdf, 0.75, 0.1;
 
 
 %---------------------------------------------------------------------------------------------------
 % Structural shocks
 %---------------------------------------------------------------------------------------------------
-stderr eps_mu_z,inv_gamma_pdf, 0.26, inf;
-stderr eps_z,   inv_gamma_pdf, 0.7, inf;
-stderr eps_i,   inv_gamma_pdf, 0.4, inf;
-stderr eps_z_tildestar, inv_gamma_pdf, 0.4, inf;
-stderr eps_c,   inv_gamma_pdf, 0.4, inf;
-stderr eps_H,   inv_gamma_pdf, 0.2, inf;
-stderr eps_a,   inv_gamma_pdf, 0.5, inf; % 4x Adolfson's 0.05
-stderr eps_d,   inv_gamma_pdf, 0.3, inf;
-stderr eps_mc,  inv_gamma_pdf, 0.3, inf;
-stderr eps_mi,  inv_gamma_pdf, 0.3, inf;
-stderr eps_x,   inv_gamma_pdf, 0.3, inf;
-stderr eps_r,   inv_gamma_pdf, 0.3, inf; %0.15
+stderr eps_mu_z,		inv_gamma_pdf, 0.28, inf;
+stderr eps_z,   		inv_gamma_pdf, 2.7, inf;
+stderr eps_i,   		inv_gamma_pdf, 0.4, inf;
+stderr eps_z_tildestar, inv_gamma_pdf, 3.7, inf;
+stderr eps_c,   		inv_gamma_pdf, 0.13, inf;
+stderr eps_H,   		inv_gamma_pdf, 2.9, inf;
+stderr eps_a,   		inv_gamma_pdf, 1.3, inf;
+stderr eps_d,   		inv_gamma_pdf, 1.1, inf;
+stderr eps_mc,  		inv_gamma_pdf, 0.6, inf;
+stderr eps_mi,  		inv_gamma_pdf, 0.5, inf;
+stderr eps_x,   		inv_gamma_pdf, 4.3, inf;
+stderr eps_r,   		inv_gamma_pdf, 0.1, inf;
 stderr eps_pi_cbar,     inv_gamma_pdf, 0.01, inf;
-stderr eps_ystar,       inv_gamma_pdf, 0.47, inf; %0.2417
-stderr eps_pistar,      inv_gamma_pdf, 0.23, inf; %0.1640
-stderr eps_Rstar,       inv_gamma_pdf, 0.10, inf; %0.1411
-% stderr eps_z_star,       inv_gamma_pdf, 0.5, inf;
-%%stderr eps_g,   inv_gamma_pdf, 0.4, inf; %KS originally shocks as me, now structural shocks
-
-
-%---------------------------------------------------------------------------------------------------
-%KS need to set these carefully later
-%---------------------------------------------------------------------------------------------------
-stderr eps_i_k,inv_gamma_pdf, 0.0014, inf;
-%stderr eps_i_c,inv_gamma_pdf, 0.01, inf;
-stderr eps_i_y,inv_gamma_pdf, 0.014, inf;
-%stderr eps_i_w,inv_gamma_pdf, 0.01, inf;
+stderr eps_ystar,       inv_gamma_pdf, 0.47, inf;
+stderr eps_pistar,      inv_gamma_pdf, 0.18, inf;
+stderr eps_Rstar,       inv_gamma_pdf, 0.10, inf;
+stderr eps_i_k,			inv_gamma_pdf, 0.001, inf;
+stderr eps_i_y,			inv_gamma_pdf, 0.01, inf;
 
 %---------------------------------------------------------------------------------------------------
 end;
 %---------------------------------------------------------------------------------------------------
 
 %==========================================================================
-% Set starting value for estimated parameters
+estimation(order=1,datafile=us_data,  first_obs=1, nobs=105, plot_priors=0, mh_replic=40000, mh_jscale=0.33, mh_nblocks=3, optim = ('NumberOfMh', 20), mode_compute=6, mode_check);
 %==========================================================================
 
-%estimated_params_init(use_calibration);
-
-%phi_i, 7.7;
-
-%---------------------------------------------------------------------------------------------------
-% Consumption
-%---------------------------------------------------------------------------------------------------
-%b, 0.75;
-
-%---------------------------------------------------------------------------------------------------
-% Calvo parameters
-%---------------------------------------------------------------------------------------------------
-%theta_d, 0.9;
-%theta_mc, 0.75;
-%theta_mi, 0.8;
-%theta_x, 0.97;
-%theta_e, 0.7;
-
-%---------------------------------------------------------------------------------------------------
-% Indexation
-%---------------------------------------------------------------------------------------------------
-%xi_d, 0.67;
-%xi_mc, 0.54;
-%xi_mi, 0.73;
-% xi_x,        beta_pdf, 0.75, 0.1;
-
-%---------------------------------------------------------------------------------------------------
-% Exchange rate
-%---------------------------------------------------------------------------------------------------
-%phi_a, 0.03;
-%phi_s, 0.5;
-
-%---------------------------------------------------------------------------------------------------
-% Taylor rules
-%---------------------------------------------------------------------------------------------------
-%rho_r, 0.88;
-%phi_pi, 1.7;
-%phi_dpi, 0.12;
-%phi_y, 0.19;  
-%phi_dy, 0.06;  
-%phi_x, -0.04;  %KS
-
-%---------------------------------------------------------------------------------------------------
-% Persistence parameters
-%---------------------------------------------------------------------------------------------------
-%rho_mu_z, 0.76;
-%rho_z,  0.99;
-%rho_i,  0.85;
-%rho_ztildestar, 0.87;
-%rho_c,          0.83;
-%rho_H,          0.94;
-%rho_a,          0.85;
-%rho_lambda_d,   beta_pdf, 0.85, 0.1;
-%rho_lambda_mc,  0.77;
-%rho_lambda_mi,  0.88;
-%rho_lambda_x,   0.88;
-%rho_pi,         beta_pdf, 0.75, 0.1;
-
-%---------------------------------------------------------------------------------------------------
-% Structural shocks
-%---------------------------------------------------------------------------------------------------
-%stderr eps_mu_z, 0.4;
-%stderr eps_z,   0.9;
-%stderr eps_i,   0.5;
-%stderr eps_z_tildestar, 0.5;
-%stderr eps_c,   0.4;
-%stderr eps_H,   0.3;
-%stderr eps_a,   0.7; % 4x Adolfson's 0.05
-%stderr eps_d,   1.2;
-%stderr eps_mc,  1;
-%stderr eps_mi,  0.3;
-%stderr eps_x,   0.3;
-%stderr eps_r,   0.1;
-%stderr eps_pi_cbar,     0.5;
-%stderr eps_ystar,       0.4;
-%stderr eps_pistar,      0.5;
-%stderr eps_Rstar,       0.1;
-
-
-
-%---------------------------------------------------------------------------------------------------
-%end;
-%---------------------------------------------------------------------------------------------------
-
-%steady;
-
-%oo_.steady_state
-%==========================================================================
-%estimation(datafile=us_data, mh_replic=0, mh_nblocks=1, mh_drop=0.2, mh_jscale=0.2, mode_compute=0, plot_priors=0);
-estimation(order=1,datafile=us_data_v2,  first_obs=1, nobs=105, plot_priors=1, mh_replic=15000, mh_jscale=0.35, mh_nblocks=3, mode_compute=6, mode_check); %mode_compute=1, dpss_data_12q4_full, us_data
-%==========================================================================
-
-%==========================================================================
-%dynare_sensitivity;
-%==========================================================================
-
-%==========================================================================
-%identification;
-%==========================================================================
-
-%==========================================================================
-%write_latex_dynamic_model;
-%==========================================================================
-
-stoch_simul(irf=20, periods=5000) R_ pi_c_ pi_cbar_ dy_ dc_ di_ dy_star_ dE_ pi_star_ R_star_ dS_ dex_ dimp_ dw_ pi_i_ pi_d_ ;
-%shock_decomposition(parameter_set=calibration,datafile=us_data_v2);
-
-%==========================================================================
-%Run multiple scenarios
-%==========================================================================
-%%I = 1000 ; % insert the number of desired simulations
-%for i = 1:I % that simulates the model I times
-%	stoch_simul(irf=0, periods=200, nocorr, nofunctions, nomoments);
-%	eval(['simulation',num2str(i), '=oo_.endo_simul(:,:);']); % saves all simulated data in a matrix simulation(i), for simulation attempt i
-
-%	if i==1
-%		eval(['save sim_mf simulation', num2str(i), ';']);
-%	else
-%		eval(['save sim_mf simulation', num2str(i), ' -append;']);
-%	end
-%end
+stoch_simul(irf=20, periods=5000, simul_replic = 1000) R_ pi_c_ pi_cbar_ dy_ dc_ di_ dy_star_ dE_ pi_star_ R_star_ dS_ dex_ dimp_ dw_ pi_i_ pi_d_ ;
