@@ -2,16 +2,16 @@ library(rpart)
 library(rpart.plot)
 library(FNN)
 library(neuralnet)
+library(gbm)
 
-setwd("C:/dsge/r")
-#setwd("C:/temp/2017/dsge/fm")
+setwd("C:/dsge/r3")
 ################################################################
 # Multifactor regression #######################################
 ################################################################
 rawdata <- read.csv("input/inputmap.csv", header=TRUE, sep=",", dec=".")
 #rawdata <- rawdata[36:nrow(rawdata),]
 Xnames <- c("R_","pi_c_","dy_","dc_","di_","dE_") #,"pi_i_","pi_d_","dimp_","dex_"
-Ynames <- names(rawdata)[!names(rawdata) %in% c(Xnames,"Year","Quarter","Recession","pi_i_","pi_d_","dimp_","dex_")]
+Ynames <- names(rawdata)[!names(rawdata) %in% c(Xnames,"Year","Quarter","Recession","pi_i_","pi_d_","dimp_","dex_","dE_","dS_","dw_","dy_star_","pi_star_","R_star_")]
 
 modeloutput <- data.frame(y=character(),
 				 RMSE=double(),
@@ -31,6 +31,7 @@ modeloutput <- data.frame(y=character(),
 lag <-2
 residuals <- matrix(,nrow=nrow(rawdata)-lag,ncol=length(Ynames))
 colnames(residuals) <- Ynames
+
 for (y in Ynames) {
 	Traindata <- rawdata[,names(rawdata) %in% c(y,Xnames,"Recession")]
 	
@@ -103,6 +104,21 @@ for (y in Ynames) {
 
 	modeloutput[nrow(modeloutput)+1,] <- c(y, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr,"KNN")
 
+	#gbm
+	gbmreg<-gbm(f, data=Traindata, distribution = "gaussian", interaction.depth=6, n.minobsinnode = 2, bag.fraction=0.7, n.trees = 50)
+	rmse<-sqrt(mean((Traindata[,y]-gbmreg$fit)^2))
+	r2<-1-sum((Traindata[,y]-gbmreg$fit)^2)/sum((Traindata[,y]-mean(Traindata[,y]))^2)
+	r2adjust <- r2-(1-r2)*length(Xnames2)/(nrow(Traindata)-length(Xnames2)-1)
+	df<-nrow(Traindata)-length(Xnames2)-1
+	fvar <- var(gbmreg$fit)
+	resfvar <- var(gbmreg$fit[Traindata$Recession==1])
+	rvar <- var(Traindata[,y]-gbmreg$fit)
+	resrvar <- var((Traindata[,y]-gbmreg$fit)[Traindata$Recession==1])
+	corr<-cor((Traindata[,y]-gbmreg$fit),gbmreg$fit)
+	rescorr<-cor((Traindata[,y]-gbmreg$fit)[Traindata$Recession==1],gbmreg$fit[Traindata$Recession==1])
+
+	modeloutput[nrow(modeloutput)+1,] <- c(y, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr,"gbm")
+
 	#ann
 	set.seed(123)
 
@@ -144,7 +160,7 @@ for (y in Ynames) {
 ################################################################
 # predict recession ############################################
 ################################################################
-rawdata <- read.csv("inputmap.csv", header=TRUE, sep=",", dec=".")
+rawdata <- read.csv("input/inputmap.csv", header=TRUE, sep=",", dec=".")
 Xnames <- c("pi_c_","dy_","dc_","di_","dE_")
 Ynames <- "Recession"
 
@@ -303,8 +319,8 @@ write.csv(modeloutput,paste0("modeloutput2.csv"))
 ################################################################
 # Variable selection for linear regression #####################
 ################################################################
-rawdata <- read.csv("inputmap.csv", header=TRUE, sep=",", dec=".")
-Xnames <- c("R_","pi_c_","pi_i_","pi_d_","dy_","dc_","di_","dimp_","dex_","dE_")
+rawdata <- read.csv("input/inputmap.csv", header=TRUE, sep=",", dec=".")
+Xnames <- c("R_","pi_c_","pi_i_","pi_d_","dy_","dc_","di_","dimp_","dex_","dE_","dS_","dw_","dy_star_","pi_star_","R_star_")
 Ynames <- names(rawdata)[!names(rawdata) %in% c(Xnames,"Year","Quarter","Recession")]
 
 modeloutput <- data.frame(y=character(),
@@ -436,7 +452,7 @@ repaircorr<-function(C){
 
 #correlation matrix for expansion periods
 um<-"pairwise.complete.obs" #"pairwise.complete.obs" "complete.obs" "all.obs" "na.or.complete"
-alldata <- read.csv("residuals1.csv", header=TRUE, sep=",", dec=".")
+alldata <- read.csv("residuals3.csv", header=TRUE, sep=",", dec=".")
 alldata$Recession <- rawdata$Recession[3:length(rawdata$Recession)] #lag = 2
 cordata <- alldata[alldata$Recession == 0,]
 cordata <- alldata[,!names(alldata) %in% c("Recession", "X")]
@@ -502,6 +518,22 @@ Traindata <- Traindata[complete.cases(Traindata),]
 var1 <- VAR(Traindata, p = 1, type = "const") #both
 stab1 <- stability(var1, h = 0.15, dynamic = FALSE, rescale = TRUE) #type = c("OLS-CUSUM", "Rec-CUSUM", "Rec-MOSUM","OLS-MOSUM", "RE", "ME", "Score-CUSUM", "Score-MOSUM", "fluctuation"),
 plot(stab1)
+
+write.csv(summary(var1)$corres, "corres.csv")
+
+#correlation matrix for macroeconomic factors
+um<-"pairwise.complete.obs" #"pairwise.complete.obs" "complete.obs" "all.obs" "na.or.complete"
+normalcorr <- read.csv("corres.csv", header=TRUE, sep=",", dec=".")
+normalcorr[is.na(normalcorr)]<-0
+normalcorr <- normalcorr[,c(2:ncol(normalcorr))]
+icount <-0
+while (repairall(normalcorr)==0) {
+	normalcorr <- repaircorr(normalcorr)
+	icount <- icount+1
+	#print(icount)
+}
+macrochol <- chol(normalcorr)
+write.csv(macrochol,paste0("macrochol.csv"),row.names = FALSE)
 
 ################################################################
 # Fit data to Normal distribution ##############################
