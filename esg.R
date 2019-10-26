@@ -156,8 +156,6 @@ histAR <- histAR[(nrow(histAR)-1):nrow(histAR),]
 histMF <- inputmap[,names(inputmap) %in% Xnames]
 histMF <- histMF[(nrow(histMF)-1):nrow(histMF),]
 histRecession <- inputmap[(nrow(inputmap)-1):nrow(inputmap),names(inputmap) %in% c("Recession")]
-termmix <- read.csv("input/termmix.csv")
-migration <- read.csv("input/migration.csv")
 
 #Recession Logistic function
 recession <- function(paras, vals){
