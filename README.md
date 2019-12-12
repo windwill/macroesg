@@ -38,7 +38,7 @@ Data: inputmap.csv for multifactor regression; varinput.csv for VAR macroecnomic
 
 Program: fundmapping.R
 
-Change working directory in setwd("C:/dsge/r")
+Change working directory in setwd("C:/dsge/r5")
 
 # ESG
 ESG using DSGE and multifactor regression. It also includes yield curve interpolation and extropolation, and bond return calculation based on bond yield curve and investment strategy.
@@ -51,9 +51,9 @@ normalchol.csv: Cholesky decomposition for expansion periods
 
 recessionchol.csv: Cholesky decomposition for recession periods
 
-termmix.csv: target term mix for bond fund
+dsge_foa.csv: DSGE first order approximation used for economic factor simulation
 
-migration.csv: credit rating migration matrix, default rate, and recovery rate
+dsge_shocks.csv: distribution of soruces of risk
 
 Program: esg.R
 
@@ -70,7 +70,7 @@ Matlab is expected to be faster than Octave running the dynare program but it is
 If you have multiple cores or multiple machines, you may want to set up parallel runs using Matlab. This is especially helpful for MCMC with multiple chains. You will need a configuration file to specifiy the machines and how many CPU cores to use. A sample config file is provided as /input/parallel_matlab.cfg. To run the model in the parallel mode, you can use the following commands, assuming you saved the config file under 'C:\dynare\':
 
 addpath c:\dynare\4.5.7\matlab
-cd C:\dynare\uss
-dynare uss parallel conffile='C:\dynare\parallel.cfg'
+cd C:\dynare\us
+dynare us parallel conffile='C:\dynare\parallel.cfg'
 
 More detailed instructions can be found at https://www.dynare.org/manual/Windows-Step_002dby_002dStep-Guide.html#Windows-Step_002dby_002dStep-Guide
