@@ -6,17 +6,15 @@ library(gbm)
 library(glmnet)
 library(caret)
 
-setwd("C:/dsge/r3")
+setwd("C:/dsge/r5")
 set.seed(123)
-#setwd("C:/temp/2017/dsge/fm")
 ################################################################
 # Multifactor regression #######################################
 ################################################################
 rawdata <- read.csv("input/inputmap.csv", header=TRUE, sep=",", dec=".")
 #rawdata <- rawdata[36:nrow(rawdata),]
-Xnames <- c("R_","pi_c_","dy_","dc_","di_","dE_") #,"pi_i_","pi_d_","dimp_","dex_"
-Ynames <- names(rawdata)[!names(rawdata) %in% c(Xnames,"Year","Quarter","Recession","pi_i_","pi_d_","dimp_","dex_","dE_","dS_","dw_","dy_star_","pi_star_","R_star_","aaadefault","spmid","spmidd","spsmall","spsmalld",
-												"ereit","ereitinc","mreitret","mreitinc","wage","aa1y","aa2y","aa3y","aa5y","aa7y","aa10y","aa20y","aa30y")]
+Xnames <- c("R_","pi_c_","dy_","dc_","di_","dE_","dimp_","dex_","dS_","dw_")
+Ynames <- names(rawdata)[!names(rawdata) %in% c(Xnames,"Year","Quarter","Recession","pi_i_","pi_d_","dimp_","dex_","dE_","dS_","dw_","dy_star_","pi_star_","R_star_","aaadefault")]
 
 modeloutput <- data.frame(y=character(),
 				 RMSE_train=double(),
@@ -230,7 +228,7 @@ for (y in Ynames) {
 	set.seed(123)
 
 	#gbm
-	gbmreg<-gbm(f, data=training, distribution = "gaussian", interaction.depth=6, n.minobsinnode = 2, bag.fraction=0.7, n.trees = 50)
+	gbmreg<-gbm(f, data=training, distribution = "gaussian", interaction.depth=6, n.minobsinnode = 2, bag.fraction=0.7, n.trees = 100)
 	gbmpredict <- predict(gbmreg, training, n.trees = 50)
 	rmse_train<-sqrt(mean((training[,y]-gbmpredict)^2))
 	r2_train<-1-sum((training[,y]-gbmpredict)^2)/sum((training[,y]-mean(training[,y]))^2)
@@ -301,7 +299,7 @@ for (y in Ynames) {
 	
 }
 
-	write.csv(modeloutput,paste0("modeloutput1_valid_1.csv"))
+	write.csv(modeloutput,paste0("modeloutput1.csv"))
 	write.csv(residuals,paste0("residuals1.csv"))
 	write.csv(residualsridge,paste0("residuals1ridge.csv"))
 	write.csv(residualslasso,paste0("residuals1lasso.csv"))
@@ -309,6 +307,91 @@ for (y in Ynames) {
 	write.csv(residualsgbm,paste0("residuals1gbm.csv"))
 	write.csv(residualsann,paste0("residuals1ann.csv"))
 
+	
+################################################################
+# Elastic Net on All Data ######################################
+################################################################
+#After we chose Elastic Net as our best model, we apply it to all data to capture more information
+	
+modeloutput <- data.frame(y=character(),
+				 RMSE_train=double(),
+                 R2_train=double(),
+                 R2Adjust_train=double(),
+				 RMSE=double(),
+                 R2=double(),
+                 R2Adjust=double(),
+				 df=integer(),
+				 fvar=double(),
+				 resfvar=double(),
+				 rvar=double(),
+				 resrvar=double(),
+				 corr=double(),
+				 rescorr=double(),
+                 Models=character(),
+                 stringsAsFactors=FALSE)
+
+
+lag <-2
+residualselastic <- matrix(,nrow=nrow(rawdata)-lag,ncol=length(Ynames))
+colnames(residualselastic) <- Ynames
+
+for (y in Ynames) {
+	Traindata <- rawdata[,names(rawdata) %in% c(y,Xnames,"Recession")]
+	
+	Xnames1 <- names(Traindata)[!names(Traindata) %in% c("Recession")]
+
+	if (lag > 0) {
+		for (i in c(1:lag)){
+			for (varname in Xnames1){
+				Traindata[(i+1):nrow(Traindata),paste0(varname,i)] <- Traindata[1:(nrow(Traindata)-i),varname]
+				Traindata[1:i,paste0(varname,i)] <- NA
+			}
+		}
+	}
+	
+	Traindata <- na.omit(Traindata[(lag+1):nrow(Traindata),])
+	
+	Xnames2 <- names(Traindata)[!names(Traindata) %in% c(y,"Recession")]
+	
+	f <-as.formula(paste(y,"~",paste(Xnames2,collapse="+")))
+	
+	print(f)
+
+	training <- Traindata
+	validation <- Traindata
+
+	#elastic net
+	elastic<-train(f, data = training, method = "glmnet", trControl = trainControl("cv", number = 10), tuneLength = 10)
+	alpha <- elastic$bestTune[1]
+	lambda <- elastic$bestTune[2]
+	elastic<-glmnet(as.matrix(training[,Xnames2]), as.matrix(training[,y]), alpha = alpha, lambda = lambda)
+	elasticpredict <- predict(elastic, newx = as.matrix(training[Xnames2]))
+	rmse_train<-sqrt(mean((training[,y]-elasticpredict)^2))
+	r2_train<-1-sum((training[,y]-elasticpredict)^2)/sum((training[,y]-mean(training[,y]))^2)
+	r2adjust_train <- r2_train-(1-r2_train)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
+	elasticpredict <- predict(elastic, s = lambda, newx = as.matrix(validation[Xnames2]))
+	rmse<-sqrt(mean((validation[,y]-elasticpredict)^2))
+	r2<-1-sum((validation[,y]-elasticpredict)^2)/sum((validation[,y]-mean(validation[,y]))^2)
+	r2adjust <- r2-(1-r2)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
+	#aic<-AIC(lr)
+	#bic<-BIC(lr)
+	df<-nrow(training)-length(Xnames2)-1
+	elasticpredict <- predict(elastic, s = lambda, newx = as.matrix(Traindata[Xnames2]))
+	fvar <- var(elasticpredict)
+	resfvar <- var(elasticpredict[Traindata$Recession==1])
+	rvar <- var(Traindata[,y]-elasticpredict)
+	resrvar <- var((Traindata[,y]-elasticpredict)[Traindata$Recession==1])
+	corr<-cor(Traindata[,y]-elasticpredict,elasticpredict)
+	rescorr<-cor((Traindata[,y]-elasticpredict)[Traindata$Recession==1],elasticpredict[Traindata$Recession==1])
+	modeloutput[nrow(modeloutput)+1,] <- c(y, rmse_train, r2_train, r2adjust_train, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr, "elastic")
+	write.csv(rbind(as.matrix(elastic$a0), as.matrix(elastic$beta)),paste0("elastic_",y,".csv"))
+	residual_elastic <- Traindata[,y]-elasticpredict
+	residualselastic[,y]<-c(rep(NA,nrow(residualselastic)-length(residual_elastic)),residual_elastic)
+}
+
+	write.csv(modeloutput,paste0("modeloutput3.csv"))
+	write.csv(residualselastic,paste0("residuals1elastic3.csv"))
+	
 ################################################################
 # predict recession ############################################
 ################################################################
@@ -696,7 +779,8 @@ write.csv(modeloutput,paste0("modeloutput2.csv"))
 #This part may not be necessary if we choose lasso, ridge regression, or elastic net where regularization will help select variables.
 rawdata <- read.csv("input/inputmap.csv", header=TRUE, sep=",", dec=".")
 Xnames <- c("R_","pi_c_","pi_i_","pi_d_","dy_","dc_","di_","dimp_","dex_","dE_","dS_","dw_","dy_star_","pi_star_","R_star_")
-Ynames <- names(rawdata)[!names(rawdata) %in% c(Xnames,"Year","Quarter","Recession")]
+Ynames <- names(rawdata)[!names(rawdata) %in% c(Xnames,"Year","Quarter","Recession","pi_i_","pi_d_","dimp_","dex_","dE_","dS_","dw_","dy_star_","pi_star_","R_star_","aaadefault","spmid","spmidd","spsmall","spsmalld",
+												"ereit","ereitinc","mreitret","mreitinc","wage","aa1y","aa2y","aa3y","aa5y","aa7y","aa10y","aa20y","aa30y")]
 
 modeloutput <- data.frame(y=character(),
 				 RMSE=double(),
@@ -827,13 +911,13 @@ repaircorr<-function(C){
 
 #correlation matrix for expansion periods
 um<-"pairwise.complete.obs" #"pairwise.complete.obs" "complete.obs" "all.obs" "na.or.complete"
-alldata <- read.csv("residuals3.csv", header=TRUE, sep=",", dec=".")
+alldata <- read.csv("residuals1elastic3.csv", header=TRUE, sep=",", dec=".")
 alldata$Recession <- rawdata$Recession[3:length(rawdata$Recession)] #lag = 2
 cordata <- alldata[alldata$Recession == 0,]
 cordata <- alldata[,!names(alldata) %in% c("Recession", "X")]
 normalcorr <- cor(cordata, use = um, method = "pearson")
 normalcorr[is.na(normalcorr)]<-0
-normalcorr["aaadefault","aaadefault"]<-1
+#normalcorr["aaadefault","aaadefault"]<-1
 icount <-0
 while (repairall(normalcorr)==0) {
 	normalcorr <- repaircorr(normalcorr)
@@ -847,7 +931,7 @@ normalchol <- chol(normalcorr)
 cordata <- cordata[complete.cases(cordata),]
 normalcorr <- cor(cordata, use = um, method = "pearson")
 normalcorr[is.na(normalcorr)]<-0
-normalcorr["aaadefault","aaadefault"]<-1
+#normalcorr["aaadefault","aaadefault"]<-1
 icount <-0
 while (repairall(normalcorr)==0) {
 	normalcorr <- repaircorr(normalcorr)
@@ -861,7 +945,7 @@ cordata <- alldata[alldata$Recession == 1,]
 cordata <- cordata[,!names(cordata) %in% c("Recession","X")]
 recessioncorr <- cor(cordata, use = um, method = "pearson")
 recessioncorr[is.na(recessioncorr)]<-0
-recessioncorr["aaadefault","aaadefault"]<-1
+#recessioncorr["aaadefault","aaadefault"]<-1
 #recessioncorr <-ifelse(abs(recessioncorr)>abs(normalcorr),recessioncorr,normalcorr)
 icount <-0
 while (repairall(recessioncorr)==0) {
