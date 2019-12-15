@@ -944,7 +944,9 @@ end;
 %---------------------------------------------------------------------------------------------------
 
 %==========================================================================
-estimation(order=1,datafile=us_data_v2,  first_obs=1, nobs=105, plot_priors=0, mh_replic=40000, mh_jscale=0.33, mh_nblocks=3, optim = ('NumberOfMh', 20), mode_compute=6, mode_check); %mode_compute=1, dpss_data_12q4_full, us_data
+estimation(order=1,datafile=us_data,  first_obs=1, nobs=105, plot_priors=0, mh_replic=40000, mh_jscale=0.33, mh_nblocks=3, optim = ('NumberOfMh', 20), mode_compute=6, mode_check); %mode_compute=1, dpss_data_12q4_full, us_data
 %==========================================================================
 
+%==========================================================================
 stoch_simul(irf=20, periods=200, simul_replic = 1000) R_ pi_c_ pi_cbar_ dy_ dc_ di_ dy_star_ dE_ pi_star_ R_star_ dS_ dex_ dimp_ dw_ pi_i_ pi_d_ ;
+%==========================================================================
