@@ -1,3 +1,10 @@
+# Check if required packages have been installed. If not install them
+packages <- c("rpart", "rpart.plot", "FNN", "neuralnet", "gbm", "glmnet", "caret")
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+  install.packages(setdiff(packages, rownames(installed.packages())))  
+}
+
+# Load the libraries
 library(rpart)
 library(rpart.plot)
 library(FNN)
@@ -6,55 +13,74 @@ library(gbm)
 library(glmnet)
 library(caret)
 
-setwd("C:/dsge/r5")
+# Set working directory. This needs to be changed according to your file system
+setwd("C:/dsge/r6")
+
+# Set random number generator
 set.seed(123)
+
+start_time <- Sys.time()
+
 ################################################################
 # Multifactor regression #######################################
 ################################################################
+
+# Read csv file that contains historical economic factor and asset returns
 rawdata <- read.csv("input/inputmap.csv", header=TRUE, sep=",", dec=".")
-#rawdata <- rawdata[36:nrow(rawdata),]
+
+# select X variables
 Xnames <- c("R_","pi_c_","dy_","dc_","di_","dE_","dimp_","dex_","dS_","dw_")
+
+# select Y variables
 Ynames <- names(rawdata)[!names(rawdata) %in% c(Xnames,"Year","Quarter","Recession","pi_i_","pi_d_","dimp_","dex_","dE_","dS_","dw_","dy_star_","pi_star_","R_star_","aaadefault")]
 
+# define a dataframe that will be used to store the results
 modeloutput <- data.frame(y=character(),
-				 RMSE_train=double(),
-                 R2_train=double(),
-                 R2Adjust_train=double(),
-				 RMSE=double(),
-                 R2=double(),
-                 R2Adjust=double(),
-				 df=integer(),
-				 fvar=double(),
-				 resfvar=double(),
-				 rvar=double(),
-				 resrvar=double(),
-				 corr=double(),
-				 rescorr=double(),
-                 Models=character(),
+				 RMSE_train=double(), 		#RMSE based on training data
+                 R2_train=double(),   		#R-squared based on training data
+                 R2Adjust_train=double(), 	#Adjusted R-squared based on training data
+				 RMSE=double(),				#RMSE based on valiation data
+                 R2=double(),				#R-squared based on valiation data
+                 R2Adjust=double(),			#Adjusted R-squared based on validation data
+				 df=integer(),				#degree of freedom
+				 fvar=double(),				#total variance
+				 resfvar=double(),			#residual variance
+				 rvar=double(),				#recession variance
+				 resrvar=double(),			#residual recession variance
+				 corr=double(),				#correlation coefficient
+				 rescorr=double(),			#correlation coefficient during recessions
+                 Models=character(),		#model type
                  stringsAsFactors=FALSE)
 
 
-lag <-2
-residuals <- matrix(,nrow=nrow(rawdata)-lag,ncol=length(Ynames))
-residualsgbm <- matrix(,nrow=nrow(rawdata)-lag,ncol=length(Ynames))
-residualsann <- matrix(,nrow=nrow(rawdata)-lag,ncol=length(Ynames))
-residualsridge <- matrix(,nrow=nrow(rawdata)-lag,ncol=length(Ynames))
-residualslasso <- matrix(,nrow=nrow(rawdata)-lag,ncol=length(Ynames))
-residualselastic <- matrix(,nrow=nrow(rawdata)-lag,ncol=length(Ynames))
-colnames(residuals) <- Ynames
+lag <-2 # how many lags to be used for regressions. A lag of 2 means x, x(-1), and x(-2) will be used in the regression.
+residuals <- matrix(,nrow=nrow(rawdata)-lag,ncol=length(Ynames))		#store residuals of linear regression
+residualsgbm <- matrix(,nrow=nrow(rawdata)-lag,ncol=length(Ynames))		#store residuals of GBM
+residualsann <- matrix(,nrow=nrow(rawdata)-lag,ncol=length(Ynames))		#store residuals of Artificial NNs
+residualsridge <- matrix(,nrow=nrow(rawdata)-lag,ncol=length(Ynames))	#store residuals of Ridge regression
+residualslasso <- matrix(,nrow=nrow(rawdata)-lag,ncol=length(Ynames))	#store residuals of Lasso regression
+residualselastic <- matrix(,nrow=nrow(rawdata)-lag,ncol=length(Ynames))	#store residuals of Elastic Net
+#set column names of these data frames that store residuals
+colnames(residuals) <- Ynames											
 colnames(residualsgbm) <- Ynames
 colnames(residualsann) <- Ynames
 colnames(residualsridge) <- Ynames
 colnames(residualslasso) <- Ynames
 colnames(residualselastic) <- Ynames
 
-lambda = 0.5
+lambda = 0.5	#inital weight for regularization in Lasso and Ridge Regression. It is not used 
+
+################################################################
+# Model Calibration using training/validation split ############
+################################################################
 
 for (y in Ynames) {
-	Traindata <- rawdata[,names(rawdata) %in% c(y,Xnames,"Recession")]
-	
-	Xnames1 <- names(Traindata)[!names(Traindata) %in% c("Recession")]
 
+
+	Traindata <- rawdata[,names(rawdata) %in% c(y,Xnames,"Recession")]
+	Xnames1 <- names(Traindata)[!names(Traindata) %in% c("Recession")] #get a list of variables to generate lagged variables
+	
+	#generate lagged variables
 	if (lag > 0) {
 		for (i in c(1:lag)){
 			for (varname in Xnames1){
@@ -64,16 +90,17 @@ for (y in Ynames) {
 		}
 	}
 	
+	#remove data records that have NA. If the lag equals 2, the first two records will be removed as x(-1) and x(-2) have no values
 	Traindata <- na.omit(Traindata[(lag+1):nrow(Traindata),])
 	
 	Xnames2 <- names(Traindata)[!names(Traindata) %in% c(y,"Recession")]
 	
+	#generate the formula used for calibration
 	f <-as.formula(paste(y,"~",paste(Xnames2,collapse="+")))
-	
 	print(f)
 
+	#split the data into training (80%) and validation (20%)
 	idx <- sample(seq(1, 2), size = nrow(Traindata), replace = TRUE, prob = c(.8, .2))
-	
 	training <- Traindata[idx==1,]
 	validation <- Traindata[idx==2,]
 
@@ -225,9 +252,8 @@ for (y in Ynames) {
 
 	modeloutput[nrow(modeloutput)+1,] <- c(y, rmse_train, r2_train, r2adjust_train, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr,"KNN")
 
-	set.seed(123)
-
 	#gbm
+	set.seed(123) #reset random seed as gbm may use random subset
 	gbmreg<-gbm(f, data=training, distribution = "gaussian", interaction.depth=6, n.minobsinnode = 2, bag.fraction=0.7, n.trees = 100)
 	gbmpredict <- predict(gbmreg, training, n.trees = 50)
 	rmse_train<-sqrt(mean((training[,y]-gbmpredict)^2))
@@ -252,7 +278,7 @@ for (y in Ynames) {
 
 	#ann
 	set.seed(123)
-	if (y == "oil"){
+	if (y == "oil"){ #the oil data needs more complicated ANN
 		ann <- neuralnet(f, data=data.matrix(training), hidden=c(10,10,5), linear.output=TRUE, stepmax = 2000000, threshold=0.03, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 5000)
 	}else{
 		ann <- neuralnet(f, data=data.matrix(training), hidden=c(10,5), linear.output=TRUE, stepmax = 2000000, threshold=0.01, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 5000)
@@ -299,20 +325,29 @@ for (y in Ynames) {
 	
 }
 
-	write.csv(modeloutput,paste0("modeloutput1.csv"))
-	write.csv(residuals,paste0("residuals1.csv"))
-	write.csv(residualsridge,paste0("residuals1ridge.csv"))
-	write.csv(residualslasso,paste0("residuals1lasso.csv"))
-	write.csv(residualselastic,paste0("residuals1elastic.csv"))
-	write.csv(residualsgbm,paste0("residuals1gbm.csv"))
-	write.csv(residualsann,paste0("residuals1ann.csv"))
+#output results and residuals
+write.csv(modeloutput,paste0("modeloutput1.csv"))
+write.csv(residuals,paste0("residuals1.csv"))
+write.csv(residualsridge,paste0("residuals1ridge.csv"))
+write.csv(residualslasso,paste0("residuals1lasso.csv"))
+write.csv(residualselastic,paste0("residuals1elastic.csv"))
+write.csv(residualsgbm,paste0("residuals1gbm.csv"))
+write.csv(residualsann,paste0("residuals1ann.csv"))
 
+# Calculate numbers in Table 7 in the report
+modeloutput$RMSE <- as.numeric(modeloutput$RMSE)
+modeloutput$RMSE_train <- as.numeric(modeloutput$RMSE_train)
+modeloutput$R2 <- as.numeric(modeloutput$R2)
+modeloutput$R2_train <- as.numeric(modeloutput$R2_train)
+aggregate(modeloutput[,colnames(modeloutput) %in% c("RMSE_train", "R2_train", "RMSE", "R2")], by=list(modeloutput$Model), FUN = mean, na.rm=TRUE)
 	
 ################################################################
 # Elastic Net on All Data ######################################
 ################################################################
 #After we chose Elastic Net as our best model, we apply it to all data to capture more information
-	
+#This will be used for the simulation
+
+#define output structure as before
 modeloutput <- data.frame(y=character(),
 				 RMSE_train=double(),
                  R2_train=double(),
@@ -331,9 +366,13 @@ modeloutput <- data.frame(y=character(),
                  stringsAsFactors=FALSE)
 
 
+#set lag, residuals data structure
 lag <-2
 residualselastic <- matrix(,nrow=nrow(rawdata)-lag,ncol=length(Ynames))
 colnames(residualselastic) <- Ynames
+
+#run elastic net model. It will generate a csv file (elastic_y.csv) that store the calibrated model for each y.
+#The mapping.csv contains the values of all elastic net calibrated models.
 
 for (y in Ynames) {
 	Traindata <- rawdata[,names(rawdata) %in% c(y,Xnames,"Recession")]
@@ -389,8 +428,14 @@ for (y in Ynames) {
 	residualselastic[,y]<-c(rep(NA,nrow(residualselastic)-length(residual_elastic)),residual_elastic)
 }
 
-	write.csv(modeloutput,paste0("modeloutput3.csv"))
-	write.csv(residualselastic,paste0("residuals1elastic3.csv"))
+write.csv(modeloutput,paste0("modeloutput3.csv")) #this file contains the "tvar	trvar ivar	irvar	tcorr	rcorr" used in mapping.csv
+# tvar:	 fvar				#total variance
+# trvar: resfvar			#residual variance
+# ivar:	 rvar				#recession variance
+# irvar: resrvar			#residual recession variance
+# tcorr: corr				#correlation coefficient
+# rcorr: rescorr			#correlation coefficient during recessions
+write.csv(residualselastic,paste0("residuals1elastic3.csv"))
 	
 ################################################################
 # predict recession ############################################
@@ -399,22 +444,22 @@ rawdata <- read.csv("input/inputmap.csv", header=TRUE, sep=",", dec=".")
 Xnames <- c("pi_c_","dy_","dc_","di_","dE_")
 Ynames <- "Recession"
 
+#set output data structure
 modeloutput <- data.frame(y=character(),
-                 Precision_train=double(),
-                 Recall_train=double(),
-                 FMeasure_train=double(),
-                 Precision_valid=double(),
-                 Recall_valid=double(),
-                 FMeasure_valid=double(),
-                 Models=character(),
+                 Precision_train=double(), #precision based on training data
+                 Recall_train=double(),	   #recall based on training data
+                 FMeasure_train=double(),  #F measure based on training data
+                 Precision_valid=double(), #precision based on validation data
+                 Recall_valid=double(),    #recall based on validation data
+                 FMeasure_valid=double(),  #F measure based on validation data
+                 Models=character(),	   #Model type
                  stringsAsFactors=FALSE)
 
 lag <-2
-
 Traindata <- rawdata[,names(rawdata) %in% c(Ynames,Xnames)]
-
 Xnames1 <- names(Traindata)[!names(Traindata) %in% c(Ynames)]
 
+# create lagged variables
 if (lag > 0) {
 	for (i in c(1:lag)){
 		for (varname in Xnames1){
@@ -424,18 +469,19 @@ if (lag > 0) {
 	}
 }
 
+# 
 Traindata <- na.omit(Traindata[(lag+1):nrow(Traindata),])
-
 Xnames2 <- names(Traindata)[!names(Traindata) %in% c(Ynames)]
 
+# create formula
 f <-as.formula(paste(Ynames,"~",paste(Xnames2,collapse="+")))
-
 print(f)
 
+# set random seed
 set.seed(123)
 
+# split data into training and validation
 idx <- sample(seq(1, 2), size = nrow(Traindata), replace = TRUE, prob = c(.8, .2))
-
 training <- Traindata[idx==1,]
 validation <- Traindata[idx==2,]
 
@@ -478,7 +524,7 @@ paste("Validation: The F is",F_v)
 modeloutput[1,] <- c(Ynames,precision, recall, F, precision_v, recall_v, F_v, "linear")
 write.csv(summary(lr)$coefficients,paste0("lr_",Ynames,".csv"))
 
-# Generalized Linear Model (GLM)
+# Generalized Linear Model (GLM) Logistic model
 glmr <- glm(f, data=training, family=binomial)
 glmpredict <- predict(glmr, training)
 predict <- ifelse(glmpredict>0.5, 1, 0)
@@ -730,6 +776,7 @@ write.csv(rbind(as.matrix(lasso$a0), as.matrix(lasso$beta)),paste0("ridge_",Ynam
 
 
 #Logistic model is the best based on the validation result. Let's use the full dataset to get the parameters.
+#It generates the file "glm_all_Recession.csv" which contains the calibrated model used in esg.R (lines 276 - 278)
 glmr <- glm(f, data=Traindata, family=binomial)
 glmpredict <- predict(glmr, Traindata)
 predict <- ifelse(glmpredict>0.5, 1, 0)
@@ -772,106 +819,9 @@ write.csv(glmr$coefficients,paste0("glm_all_",Ynames,".csv"))
 
 write.csv(modeloutput,paste0("modeloutput2.csv"))
 
-
 ################################################################
-# Variable selection for linear regression #####################
+# Correlation and Cholesky Decomposition #######################
 ################################################################
-#This part may not be necessary if we choose lasso, ridge regression, or elastic net where regularization will help select variables.
-rawdata <- read.csv("input/inputmap.csv", header=TRUE, sep=",", dec=".")
-Xnames <- c("R_","pi_c_","pi_i_","pi_d_","dy_","dc_","di_","dimp_","dex_","dE_","dS_","dw_","dy_star_","pi_star_","R_star_")
-Ynames <- names(rawdata)[!names(rawdata) %in% c(Xnames,"Year","Quarter","Recession","pi_i_","pi_d_","dimp_","dex_","dE_","dS_","dw_","dy_star_","pi_star_","R_star_","aaadefault","spmid","spmidd","spsmall","spsmalld",
-												"ereit","ereitinc","mreitret","mreitinc","wage","aa1y","aa2y","aa3y","aa5y","aa7y","aa10y","aa20y","aa30y")]
-
-modeloutput <- data.frame(y=character(),
-				 RMSE=double(),
-                 R2=double(),
-                 R2Adjust=double(),
-				 df=integer(),
-				 fvar=double(),
-				 resfvar=double(),
-				 rvar=double(),
-				 resrvar=double(),
-				 corr=double(),
-				 rescorr=double(),
-                 Models=character(),
-                 stringsAsFactors=FALSE)
-
-
-lag <-2
-residuals <- matrix(,nrow=nrow(rawdata)-lag,ncol=length(Ynames))
-colnames(residuals) <- Ynames
-for (y in Ynames) {
-	Traindata <- rawdata[,names(rawdata) %in% c(y,Xnames,"Recession")]
-	
-	Xnames1 <- names(Traindata)[!names(Traindata) %in% c("Recession")]
-
-	if (lag > 0) {
-		for (i in c(1:lag)){
-			for (varname in Xnames1){
-				Traindata[(i+1):nrow(Traindata),paste0(varname,i)] <- Traindata[1:(nrow(Traindata)-i),varname]
-				Traindata[1:i,paste0(varname,i)] <- NA
-			}
-		}
-	}
-	
-	Traindata <- na.omit(Traindata[(lag+1):nrow(Traindata),])
-	
-	Xnames2 <- names(Traindata)[!names(Traindata) %in% c(y,"Recession")]
-	
-	f <-as.formula(paste(y,"~",paste(Xnames2,collapse="+")))
-	
-	print(f)
-
-	#linear regression
-	tryCatch(	
-	{
-		lr<-lm(f, data=Traindata)
-		for (i in Xnames2) {
-			if (summary(lr)$coefficients[i,4]>0.5) {
-				Traindata<-Traindata[,!names(Traindata) %in% c(i)]
-			}
-		}
-
-		Xnames2 <- names(Traindata)[!names(Traindata) %in% c(y,"Recession")]
-
-		f <-as.formula(paste(y,"~",paste(Xnames2,collapse="+")))
-		
-		print(f)
-
-		#linear regression
-		lr<-lm(f, data=Traindata)
-		
-		rmse<-sqrt(mean(lr$residuals^2))
-		r2<-1-sum(lr$residuals^2)/sum((Traindata[,y]-mean(Traindata[,y]))^2)
-		r2adjust <- r2-(1-r2)*length(Xnames2)/(nrow(Traindata)-length(Xnames2)-1)
-		#aic<-AIC(lr)
-		#bic<-BIC(lr)
-		df<-nrow(Traindata)-length(Xnames2)-1
-		fvar <- var(lr$fitted.values)
-		resfvar <- var(lr$fitted.values[Traindata$Recession==1])
-		rvar <- var(lr$residuals)
-		resrvar <- var(lr$residuals[Traindata$Recession==1])
-		corr<-cor(lr$residuals,lr$fitted.values)
-		rescorr<-cor(lr$residuals[Traindata$Recession==1],lr$fitted.values[Traindata$Recession==1])
-		modeloutput[nrow(modeloutput)+1,] <- c(y, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr, "LM")
-		write.csv(summary(lr)$coefficients,paste0("lr_fs4_",y,".csv"))
-		residuals[,y]<-c(rep(NA,nrow(residuals)-length(lr$residuals)),lr$residuals)
-	},
-		error = function(ex) {
-	#			print("errors")
-			fvar <- NA
-			resfvar <- NA
-			rvar <- NA
-			resrvar <- NA
-			corr <- NA
-			rescorr <- NA
-		}
-	)
-
-}
-
-	write.csv(modeloutput,paste0("modeloutput4.csv"))
-	write.csv(residuals,paste0("residuals4.csv"))
 
 #loop to repair correlation matrix for non-positive definite
 repairall <- function(C){
@@ -915,23 +865,9 @@ alldata <- read.csv("residuals1elastic3.csv", header=TRUE, sep=",", dec=".")
 alldata$Recession <- rawdata$Recession[3:length(rawdata$Recession)] #lag = 2
 cordata <- alldata[alldata$Recession == 0,]
 cordata <- alldata[,!names(alldata) %in% c("Recession", "X")]
-normalcorr <- cor(cordata, use = um, method = "pearson")
-normalcorr[is.na(normalcorr)]<-0
-#normalcorr["aaadefault","aaadefault"]<-1
-icount <-0
-while (repairall(normalcorr)==0) {
-	normalcorr <- repaircorr(normalcorr)
-	icount <- icount+1
-	#print(icount)
-}
-normalchol <- chol(normalcorr)
-
-#Alternatively, we can reduce records with NA before calculating correlation matrix.
-#Then there is no need to repair the correlation matrix
 cordata <- cordata[complete.cases(cordata),]
 normalcorr <- cor(cordata, use = um, method = "pearson")
 normalcorr[is.na(normalcorr)]<-0
-#normalcorr["aaadefault","aaadefault"]<-1
 icount <-0
 while (repairall(normalcorr)==0) {
 	normalcorr <- repaircorr(normalcorr)
@@ -945,8 +881,6 @@ cordata <- alldata[alldata$Recession == 1,]
 cordata <- cordata[,!names(cordata) %in% c("Recession","X")]
 recessioncorr <- cor(cordata, use = um, method = "pearson")
 recessioncorr[is.na(recessioncorr)]<-0
-#recessioncorr["aaadefault","aaadefault"]<-1
-#recessioncorr <-ifelse(abs(recessioncorr)>abs(normalcorr),recessioncorr,normalcorr)
 icount <-0
 while (repairall(recessioncorr)==0) {
 	recessioncorr <- repaircorr(recessioncorr)
@@ -955,14 +889,18 @@ while (repairall(recessioncorr)==0) {
 }
 recessionchol <- chol(recessioncorr)
 
+# Y variables
+Xnames <- c("R_","pi_c_","dy_","dc_","di_","dE_","dimp_","dex_","dS_","dw_")
+Ynames <- names(rawdata)[!names(rawdata) %in% c(Xnames,"Year","Quarter","Recession","pi_i_","pi_d_","dimp_","dex_","dE_","dS_","dw_","dy_star_","pi_star_","R_star_","aaadefault")]
+
 colnames(normalcorr) <- Ynames
 colnames(normalchol) <- Ynames
 colnames(recessioncorr) <- Ynames
 colnames(recessionchol) <- Ynames
-write.csv(normalcorr,paste0("normalcorr.csv"),row.names = FALSE)
-write.csv(normalchol,paste0("normalchol.csv"),row.names = FALSE)
+write.csv(normalcorr,paste0("normalcorr.csv"),row.names = FALSE)		
+write.csv(normalchol,paste0("normalchol.csv"),row.names = FALSE)		#will be used as input file for esg
 write.csv(recessioncorr,paste0("recessioncorr.csv"),row.names = FALSE)
-write.csv(recessionchol,paste0("recessionchol.csv"),row.names = FALSE)
+write.csv(recessionchol,paste0("recessionchol.csv"),row.names = FALSE)	#will be used as input file for esg
 
 
 ################################################################
@@ -1010,4 +948,7 @@ for (i in Xnames) {
 }
 
 print(LL)
+
+end_time <- Sys.time()
+print(paste0("total run time is ", end_time - start_time, "mins"))
 
