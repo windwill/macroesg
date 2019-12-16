@@ -386,7 +386,7 @@ nscns <- 1000
 cl <- parallel::makeCluster(4) #set number of cores to use
 doParallel::registerDoParallel(cl)
 simulations <- foreach(i = 1:nscns, .combine = 'rbind') %dopar% {
-	esg(mapping,histMF,histAR,normalchol,recessionchol,results,nperiod,isim)
+	esg(mapping,histMF,histAR,normalchol,recessionchol,results,nperiod,i)
 }
 parallel::stopCluster(cl)
 
