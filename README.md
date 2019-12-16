@@ -32,7 +32,7 @@ csvwrite('C:\dynare\us\oo_vd.csv', oo_.variance_decomposition);
 
 
 # Multifactor Regression
-Regression models are used to build the relationships between macroeconomic factors and asset returns. R programs are used to test five model types: linear regression, CART, KNN, ANN, and GBM. It also includes prediction of economic recession, repairing correlation matrix for non-positive definite ones, and Vector Autoregressive Model for macroeconomic factors
+Regression models are used to build the relationships between macroeconomic factors and asset returns. R programs are used to test eight model types: linear regression, Lasso, Ridge, Elastic Net, CART, KNN, ANN, and GBM. It also includes prediction of economic recession, repairing correlation matrix for non-positive definite ones, and Vector Autoregressive Model for macroeconomic factors
 
 Data: inputmap.csv for multifactor regression; varinput.csv for VAR macroecnomic model
 
@@ -56,6 +56,9 @@ dsge_foa.csv: DSGE first order approximation used for economic factor simulation
 dsge_shocks.csv: distribution of soruces of risk
 
 Program: esg.R
+
+# R Notebooks
+Both fundmapping.R and esg.R have their R notebook version in folder R_Notebook for better presentation. They need to be run in RStudio. However, the run speed is much slower than using R script and the results can not replicate what is in the report due to different usage of RNG.
 
 # Tips
 Sometimes after you finish a dynare program run, you need to wait a few minutes to kick off new runs as the program may crash.
