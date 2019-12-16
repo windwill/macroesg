@@ -1,5 +1,5 @@
 # Check if required packages have been installed. If not install them
-packages <- c("rpart", "rpart.plot", "FNN", "neuralnet", "gbm", "glmnet", "caret")
+packages <- c("rpart", "rpart.plot", "FNN", "neuralnet", "gbm", "glmnet", "caret", "vars")
 if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
   install.packages(setdiff(packages, rownames(installed.packages())))  
 }
@@ -914,7 +914,7 @@ Traindata <- Traindata[complete.cases(Traindata),]
 	
 var1 <- VAR(Traindata, p = 1, type = "const") #both
 stab1 <- stability(var1, h = 0.15, dynamic = FALSE, rescale = TRUE) #type = c("OLS-CUSUM", "Rec-CUSUM", "Rec-MOSUM","OLS-MOSUM", "RE", "ME", "Score-CUSUM", "Score-MOSUM", "fluctuation"),
-plot(stab1)
+#plot(stab1)
 
 write.csv(summary(var1)$corres, "corres.csv")
 
