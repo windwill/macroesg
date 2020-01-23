@@ -1,5 +1,5 @@
 # Check if required packages have been installed. If not install them
-packages <- c("rpart", "rpart.plot", "FNN", "neuralnet", "gbm", "glmnet", "caret", "vars")
+packages <- c("rpart", "rpart.plot", "FNN", "neuralnet", "gbm", "glmnet", "caret")
 if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
   install.packages(setdiff(packages, rownames(installed.packages())))  
 }
@@ -74,8 +74,11 @@ lambda = 0.5	#inital weight for regularization in Lasso and Ridge Regression. It
 # Model Calibration using training/validation split ############
 ################################################################
 
-for (y in Ynames) {
+#You may see some warning messages populated for certain y variables and models. They may indicate some issues which can
+#be caused by data scarcity. However, the model assessment is based on validation data and therefore the warnings may not
+#be very meaningful for model selection.
 
+for (y in Ynames) {
 
 	Traindata <- rawdata[,names(rawdata) %in% c(y,Xnames,"Recession")]
 	Xnames1 <- names(Traindata)[!names(Traindata) %in% c("Recession")] #get a list of variables to generate lagged variables
@@ -104,225 +107,240 @@ for (y in Ynames) {
 	training <- Traindata[idx==1,]
 	validation <- Traindata[idx==2,]
 
-	#linear regression
-	lr<-lm(f, data=training)
-	lrpredict <- predict(lr,training)
-	rmse_train<-sqrt(mean((training[,y]-lrpredict)^2))
-	r2_train<-1-sum((training[,y]-lrpredict)^2)/sum((training[,y]-mean(training[,y]))^2)
-	r2adjust_train <- r2_train-(1-r2_train)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
-	lrpredict <- predict(lr,validation)
-	rmse<-sqrt(mean((validation[,y]-lrpredict)^2))
-	r2<-1-sum((validation[,y]-lrpredict)^2)/sum((validation[,y]-mean(validation[,y]))^2)
-	r2adjust <- r2-(1-r2)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
-	#aic<-AIC(lr)
-	#bic<-BIC(lr)
-	df<-nrow(training)-length(Xnames2)-1
-	lrpredict <- predict(lr, Traindata)
-	fvar <- var(lrpredict)
-	resfvar <- var(lrpredict[Traindata$Recession==1])
-	rvar <- var(Traindata[,y]-lrpredict)
-	resrvar <- var((Traindata[,y]-lrpredict)[Traindata$Recession==1])
-	corr<-cor(Traindata[,y]-lrpredict,lrpredict)
-	rescorr<-cor((Traindata[,y]-lrpredict)[Traindata$Recession==1],lrpredict[Traindata$Recession==1])
-	modeloutput[nrow(modeloutput)+1,] <- c(y, rmse_train, r2_train, r2adjust_train, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr, "LM")
-	write.csv(summary(lr)$coefficients,paste0("lr_",y,".csv"))
-	residuals[,y]<-c(rep(NA,nrow(residuals)-length(lr$residuals)),lr$residuals)
-	
-	#ridge regression
-	ridge<-glmnet(as.matrix(training[,Xnames2]), as.matrix(training[,y]), alpha = 0, lambda = lambda)
-	cv.out <- cv.glmnet(as.matrix(training[,Xnames2]), as.matrix(training[,y]), alpha = 0)
-	lambda <- cv.out$lambda.min
-	ridgepredict <- predict(ridge, s = lambda, newx = as.matrix(training[Xnames2]))
-	rmse_train<-sqrt(mean((training[,y]-ridgepredict)^2))
-	r2_train<-1-sum((training[,y]-ridgepredict)^2)/sum((training[,y]-mean(training[,y]))^2)
-	r2adjust_train <- r2_train-(1-r2_train)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
-	ridgepredict <- predict(ridge, s = lambda, newx = as.matrix(validation[Xnames2]))
-	rmse<-sqrt(mean((validation[,y]-ridgepredict)^2))
-	r2<-1-sum((validation[,y]-ridgepredict)^2)/sum((validation[,y]-mean(validation[,y]))^2)
-	r2adjust <- r2-(1-r2)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
-	#aic<-AIC(lr)
-	#bic<-BIC(lr)
-	df<-nrow(training)-length(Xnames2)-1
-	ridgepredict <- predict(ridge, s = lambda, newx = as.matrix(Traindata[Xnames2]))
-	fvar <- var(ridgepredict)
-	resfvar <- var(ridgepredict[Traindata$Recession==1])
-	rvar <- var(Traindata[,y]-ridgepredict)
-	resrvar <- var((Traindata[,y]-ridgepredict)[Traindata$Recession==1])
-	corr<-cor(Traindata[,y]-ridgepredict,ridgepredict)
-	rescorr<-cor((Traindata[,y]-ridgepredict)[Traindata$Recession==1],ridgepredict[Traindata$Recession==1])
-	modeloutput[nrow(modeloutput)+1,] <- c(y, rmse_train, r2_train, r2adjust_train, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr, "Ridge")
-	write.csv(rbind(as.matrix(ridge$a0), as.matrix(ridge$beta)),paste0("ridge_",y,".csv"))
-	residual_ridge <- Traindata[,y]-ridgepredict
-	residualsridge[,y]<-c(rep(NA,nrow(residualsridge)-length(residual_ridge)),residual_ridge)
+	withCallingHandlers({
+		#linear regression
+		mdl <- "linear regression"
+		lr<-lm(f, data=training)
+		lrpredict <- predict(lr,training)
+		rmse_train<-sqrt(mean((training[,y]-lrpredict)^2))
+		r2_train<-1-sum((training[,y]-lrpredict)^2)/sum((training[,y]-mean(training[,y]))^2)
+		r2adjust_train <- r2_train-(1-r2_train)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
+		lrpredict <- predict(lr,validation)
+		rmse<-sqrt(mean((validation[,y]-lrpredict)^2))
+		r2<-1-sum((validation[,y]-lrpredict)^2)/sum((validation[,y]-mean(validation[,y]))^2)
+		r2adjust <- r2-(1-r2)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
+		#aic<-AIC(lr)
+		#bic<-BIC(lr)
+		df<-nrow(training)-length(Xnames2)-1
+		lrpredict <- predict(lr, Traindata)
+		fvar <- var(lrpredict)
+		resfvar <- var(lrpredict[Traindata$Recession==1])
+		rvar <- var(Traindata[,y]-lrpredict)
+		resrvar <- var((Traindata[,y]-lrpredict)[Traindata$Recession==1])
+		corr<-cor(Traindata[,y]-lrpredict,lrpredict)
+		rescorr<-cor((Traindata[,y]-lrpredict)[Traindata$Recession==1],lrpredict[Traindata$Recession==1])
+		modeloutput[nrow(modeloutput)+1,] <- c(y, rmse_train, r2_train, r2adjust_train, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr, "LM")
+		write.csv(summary(lr)$coefficients,paste0("lr_",y,".csv"))
+		residuals[,y]<-c(rep(NA,nrow(residuals)-length(lr$residuals)),lr$residuals)
+		
+		#ridge regression
+		mdl <- "ridge regression"
+		ridge<-glmnet(as.matrix(training[,Xnames2]), as.matrix(training[,y]), alpha = 0, lambda = lambda)
+		cv.out <- cv.glmnet(as.matrix(training[,Xnames2]), as.matrix(training[,y]), alpha = 0)
+		lambda <- cv.out$lambda.min
+		ridgepredict <- predict(ridge, s = lambda, newx = as.matrix(training[Xnames2]))
+		rmse_train<-sqrt(mean((training[,y]-ridgepredict)^2))
+		r2_train<-1-sum((training[,y]-ridgepredict)^2)/sum((training[,y]-mean(training[,y]))^2)
+		r2adjust_train <- r2_train-(1-r2_train)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
+		ridgepredict <- predict(ridge, s = lambda, newx = as.matrix(validation[Xnames2]))
+		rmse<-sqrt(mean((validation[,y]-ridgepredict)^2))
+		r2<-1-sum((validation[,y]-ridgepredict)^2)/sum((validation[,y]-mean(validation[,y]))^2)
+		r2adjust <- r2-(1-r2)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
+		#aic<-AIC(lr)
+		#bic<-BIC(lr)
+		df<-nrow(training)-length(Xnames2)-1
+		ridgepredict <- predict(ridge, s = lambda, newx = as.matrix(Traindata[Xnames2]))
+		fvar <- var(ridgepredict)
+		resfvar <- var(ridgepredict[Traindata$Recession==1])
+		rvar <- var(Traindata[,y]-ridgepredict)
+		resrvar <- var((Traindata[,y]-ridgepredict)[Traindata$Recession==1])
+		corr<-cor(Traindata[,y]-ridgepredict,ridgepredict)
+		rescorr<-cor((Traindata[,y]-ridgepredict)[Traindata$Recession==1],ridgepredict[Traindata$Recession==1])
+		modeloutput[nrow(modeloutput)+1,] <- c(y, rmse_train, r2_train, r2adjust_train, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr, "Ridge")
+		write.csv(rbind(as.matrix(ridge$a0), as.matrix(ridge$beta)),paste0("ridge_",y,".csv"))
+		residual_ridge <- Traindata[,y]-ridgepredict
+		residualsridge[,y]<-c(rep(NA,nrow(residualsridge)-length(residual_ridge)),residual_ridge)
 
-	#lasso regression
-	lasso<-glmnet(as.matrix(training[,Xnames2]), as.matrix(training[,y]), alpha = 1, lambda = lambda)
-	cv.out <- cv.glmnet(as.matrix(training[,Xnames2]), as.matrix(training[,y]), alpha = 1)
-	lambda <- cv.out$lambda.min
-	lassopredict <- predict(lasso, s = lambda, newx = as.matrix(training[Xnames2]))
-	rmse_train<-sqrt(mean((training[,y]-lassopredict)^2))
-	r2_train<-1-sum((training[,y]-lassopredict)^2)/sum((training[,y]-mean(training[,y]))^2)
-	r2adjust_train <- r2_train-(1-r2_train)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
-	lassopredict <- predict(lasso, s = lambda, newx = as.matrix(validation[Xnames2]))
-	rmse<-sqrt(mean((validation[,y]-lassopredict)^2))
-	r2<-1-sum((validation[,y]-lassopredict)^2)/sum((validation[,y]-mean(validation[,y]))^2)
-	r2adjust <- r2-(1-r2)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
-	#aic<-AIC(lr)
-	#bic<-BIC(lr)
-	df<-nrow(training)-length(Xnames2)-1
-	lassopredict <- predict(lasso, s = lambda, newx = as.matrix(Traindata[Xnames2]))
-	fvar <- var(lassopredict)
-	resfvar <- var(lassopredict[Traindata$Recession==1])
-	rvar <- var(Traindata[,y]-lassopredict)
-	resrvar <- var((Traindata[,y]-lassopredict)[Traindata$Recession==1])
-	corr<-cor(Traindata[,y]-lassopredict,lassopredict)
-	rescorr<-cor((Traindata[,y]-lassopredict)[Traindata$Recession==1],lassopredict[Traindata$Recession==1])
-	modeloutput[nrow(modeloutput)+1,] <- c(y, rmse_train, r2_train, r2adjust_train, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr, "lasso")
-	write.csv(rbind(as.matrix(lasso$a0), as.matrix(lasso$beta)),paste0("lasso_",y,".csv"))
-	residual_lasso <- Traindata[,y]-lassopredict
-	residualslasso[,y]<-c(rep(NA,nrow(residualslasso)-length(residual_lasso)),residual_lasso)
+		#lasso regression
+		mdl <- "lasso"
+		lasso<-glmnet(as.matrix(training[,Xnames2]), as.matrix(training[,y]), alpha = 1, lambda = lambda)
+		cv.out <- cv.glmnet(as.matrix(training[,Xnames2]), as.matrix(training[,y]), alpha = 1)
+		lambda <- cv.out$lambda.min
+		lassopredict <- predict(lasso, s = lambda, newx = as.matrix(training[Xnames2]))
+		rmse_train<-sqrt(mean((training[,y]-lassopredict)^2))
+		r2_train<-1-sum((training[,y]-lassopredict)^2)/sum((training[,y]-mean(training[,y]))^2)
+		r2adjust_train <- r2_train-(1-r2_train)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
+		lassopredict <- predict(lasso, s = lambda, newx = as.matrix(validation[Xnames2]))
+		rmse<-sqrt(mean((validation[,y]-lassopredict)^2))
+		r2<-1-sum((validation[,y]-lassopredict)^2)/sum((validation[,y]-mean(validation[,y]))^2)
+		r2adjust <- r2-(1-r2)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
+		#aic<-AIC(lr)
+		#bic<-BIC(lr)
+		df<-nrow(training)-length(Xnames2)-1
+		lassopredict <- predict(lasso, s = lambda, newx = as.matrix(Traindata[Xnames2]))
+		fvar <- var(lassopredict)
+		resfvar <- var(lassopredict[Traindata$Recession==1])
+		rvar <- var(Traindata[,y]-lassopredict)
+		resrvar <- var((Traindata[,y]-lassopredict)[Traindata$Recession==1])
+		corr<-cor(Traindata[,y]-lassopredict,lassopredict)
+		rescorr<-cor((Traindata[,y]-lassopredict)[Traindata$Recession==1],lassopredict[Traindata$Recession==1])
+		modeloutput[nrow(modeloutput)+1,] <- c(y, rmse_train, r2_train, r2adjust_train, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr, "lasso")
+		write.csv(rbind(as.matrix(lasso$a0), as.matrix(lasso$beta)),paste0("lasso_",y,".csv"))
+		residual_lasso <- Traindata[,y]-lassopredict
+		residualslasso[,y]<-c(rep(NA,nrow(residualslasso)-length(residual_lasso)),residual_lasso)
 
-	#elastic net
-	elastic<-train(f, data = training, method = "glmnet", trControl = trainControl("cv", number = 10), tuneLength = 10)
-	alpha <- elastic$bestTune[1]
-	lambda <- elastic$bestTune[2]
-	elastic<-glmnet(as.matrix(training[,Xnames2]), as.matrix(training[,y]), alpha = alpha, lambda = lambda)
-	elasticpredict <- predict(elastic, newx = as.matrix(training[Xnames2]))
-	rmse_train<-sqrt(mean((training[,y]-elasticpredict)^2))
-	r2_train<-1-sum((training[,y]-elasticpredict)^2)/sum((training[,y]-mean(training[,y]))^2)
-	r2adjust_train <- r2_train-(1-r2_train)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
-	elasticpredict <- predict(elastic, s = lambda, newx = as.matrix(validation[Xnames2]))
-	rmse<-sqrt(mean((validation[,y]-elasticpredict)^2))
-	r2<-1-sum((validation[,y]-elasticpredict)^2)/sum((validation[,y]-mean(validation[,y]))^2)
-	r2adjust <- r2-(1-r2)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
-	#aic<-AIC(lr)
-	#bic<-BIC(lr)
-	df<-nrow(training)-length(Xnames2)-1
-	elasticpredict <- predict(elastic, s = lambda, newx = as.matrix(Traindata[Xnames2]))
-	fvar <- var(elasticpredict)
-	resfvar <- var(elasticpredict[Traindata$Recession==1])
-	rvar <- var(Traindata[,y]-elasticpredict)
-	resrvar <- var((Traindata[,y]-elasticpredict)[Traindata$Recession==1])
-	corr<-cor(Traindata[,y]-elasticpredict,elasticpredict)
-	rescorr<-cor((Traindata[,y]-elasticpredict)[Traindata$Recession==1],elasticpredict[Traindata$Recession==1])
-	modeloutput[nrow(modeloutput)+1,] <- c(y, rmse_train, r2_train, r2adjust_train, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr, "elastic")
-	write.csv(rbind(as.matrix(elastic$a0), as.matrix(elastic$beta)),paste0("elastic_",y,".csv"))
-	residual_elastic <- Traindata[,y]-elasticpredict
-	residualselastic[,y]<-c(rep(NA,nrow(residualselastic)-length(residual_elastic)),residual_elastic)
-	
-	#cart
-	cart = rpart(f, data = training, cp = 10^(-3),minsplit = 10)
-	cartpredict <- predict(cart, training)
-	rmse_train<-sqrt(mean((training[,y]-cartpredict)^2))
-	r2_train<-1-sum((training[,y]-cartpredict)^2)/sum((training[,y]-mean(training[,y]))^2)
-	r2adjust_train <- r2_train-(1-r2_train)*(length(unique(cart$frame$var))-1)/(nrow(training)-(length(unique(cart$frame$var))-1)-1)
-	cartpredict <- predict(cart, validation)
-	rmse<-sqrt(mean((validation[,y]-cartpredict)^2))
-	r2<-1-sum((validation[,y]-cartpredict)^2)/sum((validation[,y]-mean(validation[,y]))^2)
-	r2adjust <- r2-(1-r2)*(length(unique(cart$frame$var))-1)/(nrow(training)-(length(unique(cart$frame$var))-1)-1)
-	#rpart.plot(cart)
-	df<-nrow(training)-(length(unique(cart$frame$var))-1)-1
-	cartpredict <- predict(cart, Traindata)
-	fvar <- var(cartpredict)
-	resfvar <- var(cartpredict[Traindata$Recession==1])
-	rvar <- var(Traindata[,y]-cartpredict)
-	resrvar <- var((Traindata[,y]-cartpredict)[Traindata$Recession==1])
-	corr<-cor((Traindata[,y]-cartpredict),cartpredict)
-	rescorr<-cor((Traindata[,y]-cartpredict)[Traindata$Recession==1],cartpredict[Traindata$Recession==1])
+		#elastic net
+		mdl <- "elastic net"
+		elastic<-train(f, data = training, method = "glmnet", trControl = trainControl("cv", number = 10), tuneLength = 10)
+		alpha <- elastic$bestTune[1]
+		lambda <- elastic$bestTune[2]
+		elastic<-glmnet(as.matrix(training[,Xnames2]), as.matrix(training[,y]), alpha = alpha, lambda = lambda)
+		elasticpredict <- predict(elastic, newx = as.matrix(training[Xnames2]))
+		rmse_train<-sqrt(mean((training[,y]-elasticpredict)^2))
+		r2_train<-1-sum((training[,y]-elasticpredict)^2)/sum((training[,y]-mean(training[,y]))^2)
+		r2adjust_train <- r2_train-(1-r2_train)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
+		elasticpredict <- predict(elastic, s = lambda, newx = as.matrix(validation[Xnames2]))
+		rmse<-sqrt(mean((validation[,y]-elasticpredict)^2))
+		r2<-1-sum((validation[,y]-elasticpredict)^2)/sum((validation[,y]-mean(validation[,y]))^2)
+		r2adjust <- r2-(1-r2)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
+		#aic<-AIC(lr)
+		#bic<-BIC(lr)
+		df<-nrow(training)-length(Xnames2)-1
+		elasticpredict <- predict(elastic, s = lambda, newx = as.matrix(Traindata[Xnames2]))
+		fvar <- var(elasticpredict)
+		resfvar <- var(elasticpredict[Traindata$Recession==1])
+		rvar <- var(Traindata[,y]-elasticpredict)
+		resrvar <- var((Traindata[,y]-elasticpredict)[Traindata$Recession==1])
+		corr<-cor(Traindata[,y]-elasticpredict,elasticpredict)
+		rescorr<-cor((Traindata[,y]-elasticpredict)[Traindata$Recession==1],elasticpredict[Traindata$Recession==1])
+		modeloutput[nrow(modeloutput)+1,] <- c(y, rmse_train, r2_train, r2adjust_train, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr, "elastic")
+		write.csv(rbind(as.matrix(elastic$a0), as.matrix(elastic$beta)),paste0("elastic_",y,".csv"))
+		residual_elastic <- Traindata[,y]-elasticpredict
+		residualselastic[,y]<-c(rep(NA,nrow(residualselastic)-length(residual_elastic)),residual_elastic)
+		
+		#cart
+		mdl <- "CART"
+		cart = rpart(f, data = training, cp = 10^(-3),minsplit = 10)
+		cartpredict <- predict(cart, training)
+		rmse_train<-sqrt(mean((training[,y]-cartpredict)^2))
+		r2_train<-1-sum((training[,y]-cartpredict)^2)/sum((training[,y]-mean(training[,y]))^2)
+		r2adjust_train <- r2_train-(1-r2_train)*(length(unique(cart$frame$var))-1)/(nrow(training)-(length(unique(cart$frame$var))-1)-1)
+		cartpredict <- predict(cart, validation)
+		rmse<-sqrt(mean((validation[,y]-cartpredict)^2))
+		r2<-1-sum((validation[,y]-cartpredict)^2)/sum((validation[,y]-mean(validation[,y]))^2)
+		r2adjust <- r2-(1-r2)*(length(unique(cart$frame$var))-1)/(nrow(training)-(length(unique(cart$frame$var))-1)-1)
+		#rpart.plot(cart)
+		df<-nrow(training)-(length(unique(cart$frame$var))-1)-1
+		cartpredict <- predict(cart, Traindata)
+		fvar <- var(cartpredict)
+		resfvar <- var(cartpredict[Traindata$Recession==1])
+		rvar <- var(Traindata[,y]-cartpredict)
+		resrvar <- var((Traindata[,y]-cartpredict)[Traindata$Recession==1])
+		corr<-cor((Traindata[,y]-cartpredict),cartpredict)
+		rescorr<-cor((Traindata[,y]-cartpredict)[Traindata$Recession==1],cartpredict[Traindata$Recession==1])
 
-	modeloutput[nrow(modeloutput)+1,] <- c(y, rmse_train, r2_train, r2adjust_train, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr, "CART")
+		modeloutput[nrow(modeloutput)+1,] <- c(y, rmse_train, r2_train, r2adjust_train, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr, "CART")
 
-	#knn
-	knnreg <- knn.reg(train = training[,names(validation) %in% Xnames2] , test=training[,names(training) %in% Xnames2], y=training[,y], k=5, algorithm = "kd_tree")
-	rmse_train<-sqrt(mean((training[,y]-knnreg$pred)^2))
-	r2_train<-1-sum((training[,y]-knnreg$pred)^2)/sum((training[,y]-mean(training[,y]))^2)
-	r2adjust_train <- r2_train-(1-r2_train)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
-	knnreg <- knn.reg(train = training[,names(validation) %in% Xnames2] , test=validation[,names(validation) %in% Xnames2], y=training[,y], k=5, algorithm = "kd_tree")
-	rmse<-sqrt(mean((validation[,y]-knnreg$pred)^2))
-	r2<-1-sum((validation[,y]-knnreg$pred)^2)/sum((validation[,y]-mean(validation[,y]))^2)
-	r2adjust <- r2-(1-r2)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
-	df<-nrow(training)-length(Xnames2)-1
-	knnreg <- knn.reg(train = training[,names(validation) %in% Xnames2] , test=Traindata[,names(Traindata) %in% Xnames2], y=training[,y], k=5, algorithm = "kd_tree")
-	fvar <- var(knnreg$pred)
-	resfvar <- var(knnreg$pred[Traindata$Recession==1])
-	rvar <- var(Traindata[,y]-knnreg$pred)
-	resrvar <- var((Traindata[,y]-knnreg$pred)[Traindata$Recession==1])
-	corr<-cor((Traindata[,y]-knnreg$pred),knnreg$pred)
-	rescorr<-cor((Traindata[,y]-knnreg$pred)[Traindata$Recession==1],knnreg$pred[Traindata$Recession==1])
+		#knn
+		mdl <- "KNN"
+		knnreg <- knn.reg(train = training[,names(validation) %in% Xnames2] , test=training[,names(training) %in% Xnames2], y=training[,y], k=5, algorithm = "kd_tree")
+		rmse_train<-sqrt(mean((training[,y]-knnreg$pred)^2))
+		r2_train<-1-sum((training[,y]-knnreg$pred)^2)/sum((training[,y]-mean(training[,y]))^2)
+		r2adjust_train <- r2_train-(1-r2_train)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
+		knnreg <- knn.reg(train = training[,names(validation) %in% Xnames2] , test=validation[,names(validation) %in% Xnames2], y=training[,y], k=5, algorithm = "kd_tree")
+		rmse<-sqrt(mean((validation[,y]-knnreg$pred)^2))
+		r2<-1-sum((validation[,y]-knnreg$pred)^2)/sum((validation[,y]-mean(validation[,y]))^2)
+		r2adjust <- r2-(1-r2)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
+		df<-nrow(training)-length(Xnames2)-1
+		knnreg <- knn.reg(train = training[,names(validation) %in% Xnames2] , test=Traindata[,names(Traindata) %in% Xnames2], y=training[,y], k=5, algorithm = "kd_tree")
+		fvar <- var(knnreg$pred)
+		resfvar <- var(knnreg$pred[Traindata$Recession==1])
+		rvar <- var(Traindata[,y]-knnreg$pred)
+		resrvar <- var((Traindata[,y]-knnreg$pred)[Traindata$Recession==1])
+		corr<-cor((Traindata[,y]-knnreg$pred),knnreg$pred)
+		rescorr<-cor((Traindata[,y]-knnreg$pred)[Traindata$Recession==1],knnreg$pred[Traindata$Recession==1])
 
-	modeloutput[nrow(modeloutput)+1,] <- c(y, rmse_train, r2_train, r2adjust_train, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr,"KNN")
+		modeloutput[nrow(modeloutput)+1,] <- c(y, rmse_train, r2_train, r2adjust_train, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr,"KNN")
 
-	#gbm
-	set.seed(123) #reset random seed as gbm may use random subset
-	gbmreg<-gbm(f, data=training, distribution = "gaussian", interaction.depth=6, n.minobsinnode = 2, bag.fraction=0.7, n.trees = 100)
-	gbmpredict <- predict(gbmreg, training, n.trees = 50)
-	rmse_train<-sqrt(mean((training[,y]-gbmpredict)^2))
-	r2_train<-1-sum((training[,y]-gbmpredict)^2)/sum((training[,y]-mean(training[,y]))^2)
-	r2adjust_train <- r2_train-(1-r2_train)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
-	gbmpredict <- predict(gbmreg, validation, n.trees = 50)
-	rmse<-sqrt(mean((validation[,y]-gbmpredict)^2))
-	r2<-1-sum((validation[,y]-gbmpredict)^2)/sum((validation[,y]-mean(validation[,y]))^2)
-	r2adjust <- r2-(1-r2)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
-	df<-nrow(training)-length(Xnames2)-1
-	gbmpredict <- predict(gbmreg, Traindata, n.trees = 50)	
-	fvar <- var(gbmpredict)
-	resfvar <- var(gbmpredict[Traindata$Recession==1])
-	rvar <- var(Traindata[,y]-gbmpredict)
-	resrvar <- var((Traindata[,y]-gbmpredict)[Traindata$Recession==1])
-	corr<-cor((Traindata[,y]-gbmpredict),gbmpredict)
-	rescorr<-cor((Traindata[,y]-gbmpredict)[Traindata$Recession==1],gbmpredict[Traindata$Recession==1])
-	residual_gbm <- Traindata[,y]-gbmpredict
-	residualsgbm[,y]<-c(rep(NA,nrow(residualsgbm)-length(residual_gbm)),residual_gbm)
+		#gbm
+		mdl <- "GBM"
+		set.seed(123) #reset random seed as gbm may use random subset
+		gbmreg<-gbm(f, data=training, distribution = "gaussian", interaction.depth=6, n.minobsinnode = 2, bag.fraction=0.7, n.trees = 100)
+		gbmpredict <- predict(gbmreg, training, n.trees = 50)
+		rmse_train<-sqrt(mean((training[,y]-gbmpredict)^2))
+		r2_train<-1-sum((training[,y]-gbmpredict)^2)/sum((training[,y]-mean(training[,y]))^2)
+		r2adjust_train <- r2_train-(1-r2_train)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
+		gbmpredict <- predict(gbmreg, validation, n.trees = 50)
+		rmse<-sqrt(mean((validation[,y]-gbmpredict)^2))
+		r2<-1-sum((validation[,y]-gbmpredict)^2)/sum((validation[,y]-mean(validation[,y]))^2)
+		r2adjust <- r2-(1-r2)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
+		df<-nrow(training)-length(Xnames2)-1
+		gbmpredict <- predict(gbmreg, Traindata, n.trees = 50)	
+		fvar <- var(gbmpredict)
+		resfvar <- var(gbmpredict[Traindata$Recession==1])
+		rvar <- var(Traindata[,y]-gbmpredict)
+		resrvar <- var((Traindata[,y]-gbmpredict)[Traindata$Recession==1])
+		corr<-cor((Traindata[,y]-gbmpredict),gbmpredict)
+		rescorr<-cor((Traindata[,y]-gbmpredict)[Traindata$Recession==1],gbmpredict[Traindata$Recession==1])
+		residual_gbm <- Traindata[,y]-gbmpredict
+		residualsgbm[,y]<-c(rep(NA,nrow(residualsgbm)-length(residual_gbm)),residual_gbm)
 
-	modeloutput[nrow(modeloutput)+1,] <- c(y, rmse_train, r2_train, r2adjust_train, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr,"gbm")
+		modeloutput[nrow(modeloutput)+1,] <- c(y, rmse_train, r2_train, r2adjust_train, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr,"gbm")
 
-	#ann
-	set.seed(123)
-	if (y == "oil"){ #the oil data needs more complicated ANN
-		ann <- neuralnet(f, data=data.matrix(training), hidden=c(10,10,5), linear.output=TRUE, stepmax = 2000000, threshold=0.03, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 5000)
-	}else{
-		ann <- neuralnet(f, data=data.matrix(training), hidden=c(10,5), linear.output=TRUE, stepmax = 2000000, threshold=0.01, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 5000)
-	}
-
-	#ann <- neuralnet(f, data=data.matrix(training), hidden=c(10,5), linear.output=TRUE, stepmax = 2000000, threshold=th, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 5000)
-	#ann <- neuralnet(f, data=data.matrix(Traindata), hidden=c(10), linear.output=TRUE, stepmax = 200000, threshold=0.5, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 100)
-	#ann <- neuralnet(f, data=data.matrix(Traindata), hidden=c(5), linear.output=TRUE, stepmax = 200000, threshold=0.5, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 100)
-	#ann <- neuralnet(f, data=data.matrix(Traindata), hidden=c(5), linear.output=TRUE, stepmax = 200000, threshold=0.5, act.fct = "logistic", likelihood = TRUE, lifesign ="full", lifesign.step = 100)
-	annpredict <- predict(ann,training)
-	rmse_train<-sqrt(mean((training[,y]-annpredict)^2))
-	r2_train<-1-sum((training[,y]-annpredict)^2)/sum((training[,y]-mean(training[,y]))^2)
-	r2adjust_train <- r2_train-(1-r2_train)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
-	annpredict <- predict(ann,validation)
-	rmse<-sqrt(mean((validation[,y]-annpredict)^2))
-	r2<-1-sum((validation[,y]-annpredict)^2)/sum((validation[,y]-mean(validation[,y]))^2)
-	r2adjust <- r2-(1-r2)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
-	df<-nrow(training)-length(Xnames2)-1
-
-	annpredict <- predict(ann,Traindata)
-	
-	tryCatch(
-	{
-		fvar <- var(annpredict)
-		resfvar <- var(annpredict[Traindata$Recession==1])
-		rvar <- var(Traindata[,y]-annpredict)
-		resrvar <- var((Traindata[,y]-annpredict)[Traindata$Recession==1])
-		corr<-cor((Traindata[,y]-annpredict),annpredict)
-		rescorr<-cor((Traindata[,y]-annpredict)[Traindata$Recession==1],annpredict[Traindata$Recession==1])
-	},
-		error = function(ex) {
-#			print("errors")
-			fvar <- NA
-			resfvar <- NA
-			rvar <- NA
-			resrvar <- NA
-			corr <- NA
-			rescorr <- NA
+		#ann
+		mdl <- "ANN"
+		set.seed(123)
+		if (y == "oil"){ #the oil data needs more complicated ANN
+			ann <- neuralnet(f, data=data.matrix(training), hidden=c(10,10,5), linear.output=TRUE, stepmax = 2000000, threshold=0.03, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 5000)
+		}else{
+			ann <- neuralnet(f, data=data.matrix(training), hidden=c(10,5), linear.output=TRUE, stepmax = 2000000, threshold=0.01, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 5000)
 		}
-	)
-	residual_ann <- Traindata[,y]-annpredict
-	residualsann[,y]<-c(rep(NA,nrow(residualsann)-length(residual_ann)),residual_ann)
-	modeloutput[nrow(modeloutput)+1,] <- c(y, rmse_train, r2_train, r2adjust_train, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr,"ANN")
-	
+
+		#ann <- neuralnet(f, data=data.matrix(training), hidden=c(10,5), linear.output=TRUE, stepmax = 2000000, threshold=th, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 5000)
+		#ann <- neuralnet(f, data=data.matrix(Traindata), hidden=c(10), linear.output=TRUE, stepmax = 200000, threshold=0.5, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 100)
+		#ann <- neuralnet(f, data=data.matrix(Traindata), hidden=c(5), linear.output=TRUE, stepmax = 200000, threshold=0.5, act.fct = "tanh", likelihood = TRUE, lifesign ="full", lifesign.step = 100)
+		#ann <- neuralnet(f, data=data.matrix(Traindata), hidden=c(5), linear.output=TRUE, stepmax = 200000, threshold=0.5, act.fct = "logistic", likelihood = TRUE, lifesign ="full", lifesign.step = 100)
+		annpredict <- predict(ann,training)
+		rmse_train<-sqrt(mean((training[,y]-annpredict)^2))
+		r2_train<-1-sum((training[,y]-annpredict)^2)/sum((training[,y]-mean(training[,y]))^2)
+		r2adjust_train <- r2_train-(1-r2_train)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
+		annpredict <- predict(ann,validation)
+		rmse<-sqrt(mean((validation[,y]-annpredict)^2))
+		r2<-1-sum((validation[,y]-annpredict)^2)/sum((validation[,y]-mean(validation[,y]))^2)
+		r2adjust <- r2-(1-r2)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
+		df<-nrow(training)-length(Xnames2)-1
+
+		annpredict <- predict(ann,Traindata)
+		
+		tryCatch(
+		{
+			fvar <- var(annpredict)
+			resfvar <- var(annpredict[Traindata$Recession==1])
+			rvar <- var(Traindata[,y]-annpredict)
+			resrvar <- var((Traindata[,y]-annpredict)[Traindata$Recession==1])
+			corr<-cor((Traindata[,y]-annpredict),annpredict)
+			rescorr<-cor((Traindata[,y]-annpredict)[Traindata$Recession==1],annpredict[Traindata$Recession==1])
+		},
+			error = function(ex) {
+	#			print("errors")
+				fvar <- NA
+				resfvar <- NA
+				rvar <- NA
+				resrvar <- NA
+				corr <- NA
+				rescorr <- NA
+			}
+		)
+		residual_ann <- Traindata[,y]-annpredict
+		residualsann[,y]<-c(rep(NA,nrow(residualsann)-length(residual_ann)),residual_ann)
+		modeloutput[nrow(modeloutput)+1,] <- c(y, rmse_train, r2_train, r2adjust_train, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr,"ANN")
+	}, warning = function(ex) { 
+		message(paste0("There are some issues happened for variable: ", y, "; model: ", mdl))
+		message("Here's the original warning message:")
+		message(ex)
+		cat("\n")
+	})
+
 }
 
 #output results and residuals
@@ -399,36 +417,45 @@ for (y in Ynames) {
 	training <- Traindata
 	validation <- Traindata
 
-	#elastic net
-	elastic<-train(f, data = training, method = "glmnet", trControl = trainControl("cv", number = 10), tuneLength = 10)
-	alpha <- elastic$bestTune[1]
-	lambda <- elastic$bestTune[2]
-	elastic<-glmnet(as.matrix(training[,Xnames2]), as.matrix(training[,y]), alpha = alpha, lambda = lambda)
-	elasticpredict <- predict(elastic, newx = as.matrix(training[Xnames2]))
-	rmse_train<-sqrt(mean((training[,y]-elasticpredict)^2))
-	r2_train<-1-sum((training[,y]-elasticpredict)^2)/sum((training[,y]-mean(training[,y]))^2)
-	r2adjust_train <- r2_train-(1-r2_train)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
-	elasticpredict <- predict(elastic, s = lambda, newx = as.matrix(validation[Xnames2]))
-	rmse<-sqrt(mean((validation[,y]-elasticpredict)^2))
-	r2<-1-sum((validation[,y]-elasticpredict)^2)/sum((validation[,y]-mean(validation[,y]))^2)
-	r2adjust <- r2-(1-r2)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
-	#aic<-AIC(lr)
-	#bic<-BIC(lr)
-	df<-nrow(training)-length(Xnames2)-1
-	elasticpredict <- predict(elastic, s = lambda, newx = as.matrix(Traindata[Xnames2]))
-	fvar <- var(elasticpredict)
-	resfvar <- var(elasticpredict[Traindata$Recession==1])
-	rvar <- var(Traindata[,y]-elasticpredict)
-	resrvar <- var((Traindata[,y]-elasticpredict)[Traindata$Recession==1])
-	corr<-cor(Traindata[,y]-elasticpredict,elasticpredict)
-	rescorr<-cor((Traindata[,y]-elasticpredict)[Traindata$Recession==1],elasticpredict[Traindata$Recession==1])
-	modeloutput[nrow(modeloutput)+1,] <- c(y, rmse_train, r2_train, r2adjust_train, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr, "elastic")
-	write.csv(rbind(as.matrix(elastic$a0), as.matrix(elastic$beta)),paste0("elastic_",y,".csv"))
-	residual_elastic <- Traindata[,y]-elasticpredict
-	residualselastic[,y]<-c(rep(NA,nrow(residualselastic)-length(residual_elastic)),residual_elastic)
+	withCallingHandlers({
+		#elastic net
+		mdl <- "Elastic Net"
+		elastic<-train(f, data = training, method = "glmnet", trControl = trainControl("cv", number = 10), tuneLength = 10)
+		alpha <- elastic$bestTune[1]
+		lambda <- elastic$bestTune[2]
+		elastic<-glmnet(as.matrix(training[,Xnames2]), as.matrix(training[,y]), alpha = alpha, lambda = lambda)
+		elasticpredict <- predict(elastic, newx = as.matrix(training[Xnames2]))
+		rmse_train<-sqrt(mean((training[,y]-elasticpredict)^2))
+		r2_train<-1-sum((training[,y]-elasticpredict)^2)/sum((training[,y]-mean(training[,y]))^2)
+		r2adjust_train <- r2_train-(1-r2_train)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
+		elasticpredict <- predict(elastic, s = lambda, newx = as.matrix(validation[Xnames2]))
+		rmse<-sqrt(mean((validation[,y]-elasticpredict)^2))
+		r2<-1-sum((validation[,y]-elasticpredict)^2)/sum((validation[,y]-mean(validation[,y]))^2)
+		r2adjust <- r2-(1-r2)*length(Xnames2)/(nrow(training)-length(Xnames2)-1)
+		#aic<-AIC(lr)
+		#bic<-BIC(lr)
+		df<-nrow(training)-length(Xnames2)-1
+		elasticpredict <- predict(elastic, s = lambda, newx = as.matrix(Traindata[Xnames2]))
+		fvar <- var(elasticpredict)
+		resfvar <- var(elasticpredict[Traindata$Recession==1])
+		rvar <- var(Traindata[,y]-elasticpredict)
+		resrvar <- var((Traindata[,y]-elasticpredict)[Traindata$Recession==1])
+		corr<-cor(Traindata[,y]-elasticpredict,elasticpredict)
+		rescorr<-cor((Traindata[,y]-elasticpredict)[Traindata$Recession==1],elasticpredict[Traindata$Recession==1])
+		modeloutput[nrow(modeloutput)+1,] <- c(y, rmse_train, r2_train, r2adjust_train, rmse, r2, r2adjust, df, fvar, resfvar, rvar, resrvar, corr,rescorr, "elastic")
+		write.csv(rbind(as.matrix(elastic$a0), as.matrix(elastic$beta)),paste0("elastic_",y,".csv"))
+		residual_elastic <- Traindata[,y]-elasticpredict
+		residualselastic[,y]<-c(rep(NA,nrow(residualselastic)-length(residual_elastic)),residual_elastic)
+	}, warning = function(ex) { 
+		message(paste0("There are some issues happened for variable: ", y, "; model: ", mdl))
+		message("Here's the original warning message:")
+		message(ex)
+		cat("\n")
+	})
 }
 
-write.csv(modeloutput,paste0("modeloutput3.csv")) #this file contains the "tvar	trvar ivar	irvar	tcorr	rcorr" used in mapping.csv
+write.csv(modeloutput,paste0("modeloutput3.csv")) 
+#this file contains the "tvar	trvar ivar	irvar	tcorr	rcorr" used in mapping.csv
 # tvar:	 fvar				#total variance
 # trvar: resfvar			#residual variance
 # ivar:	 rvar				#recession variance
@@ -914,7 +941,7 @@ Traindata <- Traindata[complete.cases(Traindata),]
 	
 var1 <- VAR(Traindata, p = 1, type = "const") #both
 stab1 <- stability(var1, h = 0.15, dynamic = FALSE, rescale = TRUE) #type = c("OLS-CUSUM", "Rec-CUSUM", "Rec-MOSUM","OLS-MOSUM", "RE", "ME", "Score-CUSUM", "Score-MOSUM", "fluctuation"),
-#plot(stab1)
+plot(stab1)
 
 write.csv(summary(var1)$corres, "corres.csv")
 
