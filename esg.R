@@ -1,11 +1,19 @@
+# Set working directory. This needs to be changed according to your file system
 setwd("C:/dsge/r6/")
 
+# Check if required packages have been installed. If not, they will be
+# installed automatically.
 packages <- c("foreach","doParallel")
 if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
   install.packages(setdiff(packages, rownames(installed.packages())))  
 }
 library(foreach)
 library(doParallel)
+
+# Set if you want to use parallel computing
+# Note that you may not be able to reproduce simulated results using
+# parallel computing
+parallel_compute <- TRUE
 
 ################################################################
 # Simulated Macroeconomic Factors based on the DSGE Model ######
@@ -217,6 +225,7 @@ A <- dsge[,4:(length(endo_vars)+3)] #get matrix A for endogeneous variables
 B <- dsge[,(length(endo_vars)+4):ncol(dsge)] #get matrix B for exogeneous variables
 
 #generate scenarios based on the DSGE model
+#the run speed is fast and therefore no parallel computing is built for this part.
 set.seed(6)
 counter <- 1
 for (isim in c(1:nsims)){
@@ -383,27 +392,28 @@ nscns <- 1000
 
 
 # Parallel simulation using multiple cores. However, results are not reproducible
-cl <- parallel::makeCluster(4) #set number of cores to use
-doParallel::registerDoParallel(cl)
-simulations <- foreach(i = 1:nscns, .combine = 'rbind') %dopar% {
-	esg(mapping,histMF,histAR,normalchol,recessionchol,results,nperiod,i)
+if (parallel_compute){
+	cl <- parallel::makeCluster(4) #set number of cores to use
+	doParallel::registerDoParallel(cl)
+	simulations <- foreach(i = 1:nscns, .combine = 'rbind') %dopar% {
+		esg(mapping,histMF,histAR,normalchol,recessionchol,results,nperiod,i)}
+	parallel::stopCluster(cl)
+} else {
+	# This is not using parallel but results are reproducible. It is also used when generating the results.
+	set.seed(6)
+	simulations <- esg(mapping,histMF,histAR,normalchol,recessionchol,results,nperiod,1)
+	for (i in c(1:nscns)){
+		isim <- i %% nsims
+		if (isim==0) {isim=nsims}
+		if (i == 1){
+			simulations <- esg(mapping,histMF,histAR,normalchol,recessionchol,results,nperiod,1)
+		} else {
+			one_scn <- esg(mapping,histMF,histAR,normalchol,recessionchol,results,nperiod,isim)
+			simulations <- rbind(simulations, one_scn)
+		}
+		if (i %% 10 == 0){print(paste0(i," simulations are done."))}
+	}
 }
-parallel::stopCluster(cl)
-
-# This is not using parallel but results are reproducible. It is also used when generating the results.
-# set.seed(6)
-# simulations <- esg(mapping,histMF,histAR,normalchol,recessionchol,results,nperiod,1)
-# for (i in c(1:nscns)){
-	# isim <- i %% nsims
-	# if (isim==0) {isim=nsims}
-	# if (i == 1){
-		# simulations <- esg(mapping,histMF,histAR,normalchol,recessionchol,results,nperiod,1)
-	# } else {
-		# one_scn <- esg(mapping,histMF,histAR,normalchol,recessionchol,results,nperiod,isim)
-		# simulations <- rbind(simulations, one_scn)
-	# }
-	# if (i %% 10 == 0){print(paste0(i," simulations are done."))}
-# }
 
 simulations$quarter <- rep(c((-1):nperiod),nscns)
 write.csv(simulations,"esg_dsge_1k.csv",row.names=FALSE)
