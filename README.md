@@ -58,7 +58,7 @@ dsge_shocks.csv: distribution of soruces of risk
 Program: esg.R
 
 # R Notebooks
-Both fundmapping.R and esg.R have their R notebook version in folder R_Notebook for better presentation. They need to be run in RStudio. However, the run speed is much slower than using R script and the results can not replicate what is in the report due to different usage of RNG.
+Both fundmapping.R and esg.R have their R notebook version in folder R_Notebook for better presentation. They need to be run in RStudio. However, the results can not replicate what is in the report due to different usage of RNG.
 
 # Tips
 Sometimes after you finish a dynare program run, you need to wait a few minutes to kick off new runs as the program may crash.
