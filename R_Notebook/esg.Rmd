@@ -4,8 +4,11 @@ output: html_notebook
 ---
 
 ```{r}
+# Set working directory. This needs to be changed according to your file system
 setwd("C:/dsge/r6/")
 
+# Check if required packages have been installed. If not, they will be
+# installed automatically.
 packages <- c("foreach","doParallel")
 if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
   install.packages(setdiff(packages, rownames(installed.packages())))  
@@ -13,6 +16,12 @@ if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
 library(foreach)
 library(doParallel)
 
+```
+```{r}
+# Set if you want to use parallel computing
+# Note that you may not be able to reproduce simulated results using
+# parallel computing
+parallel_compute <- TRUE
 ```
 
 ```{r}
@@ -213,9 +222,9 @@ dr_orders <- c("imp",
 
 
 #import the first order approximation of the calibrated DSGE model
-dsge <- read.csv("input/dsge_foa.csv",header = TRUE)
+dsge <- read.csv("../input/dsge_foa.csv",header = TRUE)
 #import the shocks in the calibrated DSGE model
-dsge_shocks <- read.csv("input/dsge_shocks.csv",header = TRUE)
+dsge_shocks <- read.csv("../input/dsge_shocks.csv",header = TRUE)
 
 nperiod <- 120 #number of quarters to simulate
 nsims <- 1000 #number of simulations
@@ -283,11 +292,11 @@ apply(results,2,sd)
 start_time <- Sys.time()
 
 # read multifactor model inputs
-mapping <- read.csv("input/mapping.csv")
+mapping <- read.csv("../input/mapping.csv")
 mappingNames <- colnames(mapping)[2:(ncol(mapping)-6)]
-normalchol <- read.csv("input/normalchol.csv")
-recessionchol <- read.csv("input/recessionchol.csv")
-inputmap <- read.csv("input/inputmap.csv", header=TRUE, sep=",", dec=".")
+normalchol <- read.csv("../input/normalchol.csv")
+recessionchol <- read.csv("../input/recessionchol.csv")
+inputmap <- read.csv("../input/inputmap.csv", header=TRUE, sep=",", dec=".")
 Xnames <- c("R_","pi_c_","pi_i_","pi_d_","dy_","dc_","di_","dimp_","dex_","dE_","dS_","dw_","dy_star_","pi_star_","R_star_")
 Ynames <- names(inputmap)[!names(inputmap) %in% c(Xnames,"Year","Quarter","Recession")]
 
@@ -394,28 +403,29 @@ set.seed(6)
 nscns <- 1000
 
 
-# Parallel simulation using multiple cores. However, results are not reproducible
-cl <- parallel::makeCluster(4) #set number of cores to use
-doParallel::registerDoParallel(cl)
-simulations <- foreach(i = 1:nscns, .combine = 'rbind') %dopar% {
-	esg(mapping,histMF,histAR,normalchol,recessionchol,results,nperiod,i)
+if (parallel_compute){
+	# Parallel simulation using multiple cores. However, results are not reproducible
+	cl <- parallel::makeCluster(4) #set number of cores to use
+	doParallel::registerDoParallel(cl)
+	simulations <- foreach(i = 1:nscns, .combine = 'rbind') %dopar% {
+		esg(mapping,histMF,histAR,normalchol,recessionchol,results,nperiod,i)}
+	parallel::stopCluster(cl)
+} else {
+	# This is not using parallel but results are reproducible. It is also used when generating the results.
+	set.seed(6)
+	simulations <- esg(mapping,histMF,histAR,normalchol,recessionchol,results,nperiod,1)
+	for (i in c(1:nscns)){
+		isim <- i %% nsims
+		if (isim==0) {isim=nsims}
+		if (i == 1){
+			simulations <- esg(mapping,histMF,histAR,normalchol,recessionchol,results,nperiod,1)
+		} else {
+			one_scn <- esg(mapping,histMF,histAR,normalchol,recessionchol,results,nperiod,isim)
+			simulations <- rbind(simulations, one_scn)
+		}
+		if (i %% 10 == 0){print(paste0(i," simulations are done."))}
+	}
 }
-parallel::stopCluster(cl)
-
-# This is not using parallel but results are reproducible. It is also used when generating the results.
-# set.seed(6)
-# simulations <- esg(mapping,histMF,histAR,normalchol,recessionchol,results,nperiod,1)
-# for (i in c(1:nscns)){
-	# isim <- i %% nsims
-	# if (isim==0) {isim=nsims}
-	# if (i == 1){
-		# simulations <- esg(mapping,histMF,histAR,normalchol,recessionchol,results,nperiod,1)
-	# } else {
-		# one_scn <- esg(mapping,histMF,histAR,normalchol,recessionchol,results,nperiod,isim)
-		# simulations <- rbind(simulations, one_scn)
-	# }
-	# if (i %% 10 == 0){print(paste0(i," simulations are done."))}
-# }
 
 simulations$quarter <- rep(c((-1):nperiod),nscns)
 write.csv(simulations,"esg_dsge_1k.csv",row.names=FALSE)
@@ -423,7 +433,7 @@ write.csv(simulations,"esg_dsge_1k.csv",row.names=FALSE)
 end_time <- Sys.time()
 print(paste0("It took ", end_time - start_time, "mins to generate ", nscns, " asset return scenarios of ", nperiod, " quarters."))
 
-#if you  do not use parallel computing, you can replicate numbers in Table 9
+#To generate numbers in Table 9
 apply(simulations,2,mean)
 apply(simulations,2,sd)
 
