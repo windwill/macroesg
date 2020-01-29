@@ -51,6 +51,8 @@ normalchol.csv: Cholesky decomposition for expansion periods
 
 recessionchol.csv: Cholesky decomposition for recession periods
 
+glm_all_Recession.csv: Logistic model parameters for predicting recession periods. It is an output of the fundmapping program
+
 dsge_foa.csv: DSGE first order approximation used for economic factor simulation
 
 dsge_shocks.csv: distribution of soruces of risk
