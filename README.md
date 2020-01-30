@@ -59,7 +59,7 @@ dsge_shocks.csv: distribution of soruces of risk
 Program: /R_Notebook/esg.Rmd  It needs to be run in RStudio which provides a more interative interface than R itself. It also generates a html file to show the codes and outputs.
 
 # R Scripts
-Both fundmapping.R and esg.R are the script version of the R notebooks. In case you do not want to use RStudio, they can be run in R.
+fundmapping.R and esg.R in folder R_Script are the script version of the R notebooks. In case you do not want to use RStudio, they can be run in R.
 
 You may need to change working directory in setwd("C:/dsge/r6/") with your own directory
 
