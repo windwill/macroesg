@@ -1,8 +1,6 @@
 ---
 title: "R Notebook"
-output:
-  html_document:
-    df_print: paged
+output: html_notebook
 ---
 
 ```{r}
@@ -25,8 +23,7 @@ library(caret)
 
 ```{r}
 
-# Set working directory. This needs to be changed according to your file system
-setwd("C:/dsge/r6")
+# The default working directory is the same as your R notebook (Rmd file).
 
 # Set random number generator
 set.seed(123)
@@ -38,7 +35,7 @@ start_time <- Sys.time()
 ################################################################
 
 # Read csv file that contains historical economic factor and asset returns
-rawdata <- read.csv("input/inputmap.csv", header=TRUE, sep=",", dec=".")
+rawdata <- read.csv("../input/inputmap.csv", header=TRUE, sep=",", dec=".")
 
 # select X variables
 Xnames <- c("R_","pi_c_","dy_","dc_","di_","dE_","dimp_","dex_","dS_","dw_")
