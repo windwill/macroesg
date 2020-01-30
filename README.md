@@ -36,9 +36,8 @@ Regression models are used to build the relationships between macroeconomic fact
 
 Data: inputmap.csv for multifactor regression; varinput.csv for VAR macroecnomic model
 
-Program: fundmapping.R
+Program: /R_Notebook/fundmapping.Rmd It needs to be run in RStudio which provides a more interative interface than R itself. It also generates a html file to show the codes and outputs.
 
-Change working directory in setwd("C:/dsge/r5")
 
 # ESG
 ESG using DSGE and multifactor regression. It also includes yield curve interpolation and extropolation, and bond return calculation based on bond yield curve and investment strategy.
@@ -57,10 +56,13 @@ dsge_foa.csv: DSGE first order approximation used for economic factor simulation
 
 dsge_shocks.csv: distribution of soruces of risk
 
-Program: esg.R
+Program: /R_Notebook/esg.Rmd  It needs to be run in RStudio which provides a more interative interface than R itself. It also generates a html file to show the codes and outputs.
 
-# R Notebooks
-Both fundmapping.R and esg.R have their R notebook version in folder R_Notebook for better presentation. They need to be run in RStudio. However, the results can not replicate what is in the report due to different usage of RNG.
+# R Scripts
+Both fundmapping.R and esg.R are the script version of the R notebooks. In case you do not want to use RStudio, they can be run in R.
+
+You may need to change working directory in setwd("C:/dsge/r6/") with your own directory
+
 
 # Tips
 Sometimes after you finish a dynare program run, you need to wait a few minutes to kick off new runs as the program may crash.
