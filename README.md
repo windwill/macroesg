@@ -81,3 +81,17 @@ cd C:\dynare\us
 dynare us parallel conffile='C:\dynare\parallel.cfg'
 
 More detailed instructions can be found at https://www.dynare.org/manual/Windows-Step_002dby_002dStep-Guide.html#Windows-Step_002dby_002dStep-Guide
+
+# Variables
+•	R_: policy interest rate
+•	pi_c_: inflation rate based on CPI
+•	dy_: change in real GDP per capita
+•	dc_: change in consumption per capita
+•	di_: change in investment per capita
+•	dE_: change in employment per capita
+•	dS_: change in exchange rate
+•	dex_: change in export per capita
+•	dimp_: change in import per capita
+•	dw_: change in wage index
+•	pi_i_: inflation based on fixed investment
+•	pi_d_: inflation rate based on PPI
