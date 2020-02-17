@@ -83,6 +83,7 @@ If you have multiple cores or multiple machines, you may want to set up parallel
 More detailed instructions can be found at https://www.dynare.org/manual/Windows-Step_002dby_002dStep-Guide.html#Windows-Step_002dby_002dStep-Guide
 
 # Variables
+In input/inputmap.csv, the following variables are included as inputs for fund mapping.
 * R_: policy interest rate
 * pi_c_: inflation rate based on CPI
 * dy_: change in real GDP per capita
@@ -95,3 +96,22 @@ More detailed instructions can be found at https://www.dynare.org/manual/Windows
 * dw_: change in wage index
 * pi_i_: inflation based on fixed investment
 * pi_d_: inflation rate based on PPI
+* dy_star_: change in foreign real GDP per capita
+* pi_star_: change foreign inflation rate
+* R_star_: foreign policy interest rate
+* tb3m: 3-month Treasury bond yield
+* tb*y: *-year Treasury bond yield
+* aaaboa: AAA-rated corporate bond credit spread
+* aaboa: AA-rated corporate bond credit spread
+* aboa: A-rated corporate bond credit spread
+* bbbboa: BBB-rated coporate bond credit spread
+* aadefault: AAA-rated corporate bond default rate
+* adefault: AA-rated corporate bond default rate
+* bbbdefault: BBB-rated corporate bond default rate
+* sp500: S&P 500 quarterly index value change (%)
+* sp500d: S&P 500 annualized dividend yield (%)
+* oil: Crude oil quarterly price change (%)
+* gold: Gold quarterly price change	(%)
+* reitret: REITs quarterly capital return
+* reitinc: REITs quarterly cap rate
+
