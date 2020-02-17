@@ -76,9 +76,9 @@ Matlab is expected to be faster than Octave running the dynare program but it is
 # Parallel Computing
 If you have multiple cores or multiple machines, you may want to set up parallel runs using Matlab. This is especially helpful for MCMC with multiple chains. You will need a configuration file to specifiy the machines and how many CPU cores to use. A sample config file is provided as /input/parallel_matlab.cfg. To run the model in the parallel mode, you can use the following commands, assuming you saved the config file under 'C:\dynare\':
 
-addpath c:\dynare\4.5.7\matlab
-cd C:\dynare\us
-dynare us parallel conffile='C:\dynare\parallel.cfg'
+* addpath c:\dynare\4.5.7\matlab
+* cd C:\dynare\us
+* dynare us parallel conffile='C:\dynare\parallel.cfg'
 
 More detailed instructions can be found at https://www.dynare.org/manual/Windows-Step_002dby_002dStep-Guide.html#Windows-Step_002dby_002dStep-Guide
 
