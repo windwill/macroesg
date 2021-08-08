@@ -1,3 +1,5 @@
+This repository will be retired and moved to the official SOA repository: https://github.com/society-of-actuaries/Macroeconomics-based-ESG
+
 # macroesg
 Macroeconomics based ESG
 
